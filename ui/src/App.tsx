@@ -1,6 +1,7 @@
 import { useWindowStore } from './store/windowStore';
-import { useSystemStore } from './store/systemStore';
+import { useSystemStore, needsSetup } from './store/systemStore';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { SetupScreen } from './components/SetupScreen/SetupScreen';
 import { LoginScreen } from './components/LoginScreen/LoginScreen';
 import { Desktop } from './components/Desktop/Desktop';
 import { Taskbar } from './components/Taskbar/Taskbar';
@@ -51,12 +52,13 @@ function renderApp(appId: string) {
 export default function App() {
   const { isLoggedIn, theme } = useSystemStore();
   const { windows } = useWindowStore();
+  const requiresSetup = needsSetup();
 
   return (
     <ErrorBoundary>
     <div data-theme={theme} style={{ width: '100vw', height: '100vh', position: 'relative', overflow: 'hidden' }}>
       {!isLoggedIn ? (
-        <LoginScreen />
+        requiresSetup ? <SetupScreen /> : <LoginScreen />
       ) : (
         <>
           <Desktop />

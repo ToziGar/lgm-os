@@ -204,7 +204,7 @@ export const useSystemStore = create<SystemStore>((set, get) => ({
     }
 
     const storedUser = db.findUserByUsername(username);
-    const valid = storedUser && storedUser.password === hashPassword(password, storedUser.salt);
+    const valid = !!(storedUser && storedUser.password === hashPassword(password, storedUser.salt));
     recordAttempt(username, valid);
 
     if (valid && storedUser) {

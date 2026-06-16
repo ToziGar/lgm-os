@@ -1,104 +1,46 @@
 import { create } from 'zustand';
 import type { UserProfile, Group, Permission } from '../types';
+import { db, type StoredUser, type StoredGroup } from './dbService';
 
-/* ─── Initial data ─── */
-const INITIAL_USERS: UserProfile[] = [
-  {
-    id: 'u-admin', username: 'admin', displayName: 'Administrador',
-    email: 'admin@lgmos.local', isAdmin: true, status: 'active',
-    groups: ['g-administrators', 'g-users'],
-    createdAt: '01/01/2025', lastLogin: '16/06/2025 14:32',
-    description: 'Cuenta de administrador del sistema',
-    quota: 0, usedQuota: 0,
-    canSMB: true, canFTP: true, canSFTP: true, canSSH: true,
-  },
-  {
-    id: 'u-lgm', username: 'lgm', displayName: 'LGM User',
-    email: 'lgm@lgmos.local', isAdmin: false, status: 'active',
-    groups: ['g-users'],
-    createdAt: '15/01/2025', lastLogin: '15/06/2025 09:10',
-    description: 'Usuario estándar',
-    quota: 51200, usedQuota: 12400,
-    canSMB: true, canFTP: false, canSFTP: true, canSSH: false,
-  },
-  {
-    id: 'u-guest', username: 'invitado', displayName: 'Invitado',
-    email: 'guest@lgmos.local', isAdmin: false, status: 'inactive',
-    groups: ['g-guests'],
-    createdAt: '01/03/2025',
-    description: 'Cuenta de invitado con acceso limitado',
-    quota: 5120, usedQuota: 0,
-    canSMB: false, canFTP: false, canSFTP: false, canSSH: false,
-  },
-  {
-    id: 'u-backup', username: 'backup', displayName: 'Backup Service',
-    email: 'backup@lgmos.local', isAdmin: false, status: 'active',
-    groups: ['g-services'],
-    createdAt: '01/01/2025',
-    description: 'Cuenta de servicio para backups automatizados',
-    quota: 0, usedQuota: 0,
-    canSMB: false, canFTP: false, canSFTP: true, canSSH: true,
-  },
-];
-
-const INITIAL_GROUPS: Group[] = [
-  {
-    id: 'g-administrators', name: 'administrators', builtIn: true,
-    description: 'Acceso completo al sistema',
-    members: ['u-admin'],
-    permissions: { 'sf-docs': 'admin', 'sf-media': 'admin', 'sf-backup': 'admin', 'sf-web': 'admin' },
-  },
-  {
-    id: 'g-users', name: 'users', builtIn: true,
-    description: 'Usuarios estándar del sistema',
-    members: ['u-admin', 'u-lgm'],
-    permissions: { 'sf-docs': 'write', 'sf-media': 'read', 'sf-backup': 'none', 'sf-web': 'none' },
-  },
-  {
-    id: 'g-guests', name: 'guests', builtIn: true,
-    description: 'Acceso de solo lectura para invitados',
-    members: ['u-guest'],
-    permissions: { 'sf-docs': 'read', 'sf-media': 'read', 'sf-backup': 'none', 'sf-web': 'none' },
-  },
-  {
-    id: 'g-services', name: 'services', builtIn: true,
-    description: 'Cuentas de servicio del sistema',
-    members: ['u-backup'],
-    permissions: { 'sf-docs': 'none', 'sf-media': 'none', 'sf-backup': 'write', 'sf-web': 'none' },
-  },
-  {
-    id: 'g-media', name: 'media', builtIn: false,
-    description: 'Acceso a archivos multimedia',
-    members: ['u-lgm'],
-    permissions: { 'sf-docs': 'none', 'sf-media': 'write', 'sf-backup': 'none', 'sf-web': 'none' },
-  },
-];
-
-/* ─── Store ─── */
+/* ─── Helpers ─── */
 let _nextId = 100;
 function genId(prefix: string) { return `${prefix}-${_nextId++}`; }
 
-// Input sanitization (OWASP A3)
 function sanitize(s: string) { return String(s).trim().slice(0, 64).replace(/[<>"'`]/g, ''); }
 function sanitizeEmail(s: string) {
   const t = s.trim().slice(0, 128).toLowerCase();
-  // Very basic check — only allow reasonable email chars
   if (!/^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$/.test(t)) return '';
   return t;
 }
+
+/* ─── Mappers ─── */
+function storedToProfile(s: StoredUser): UserProfile {
+  const { password: _pw, salt: _s, ...profile } = s;
+  return profile as unknown as UserProfile;
+}
+
+function storedToGroup(s: StoredGroup): Group {
+  return { ...s, permissions: s.permissions as Record<string, Permission> };
+}
+
+function profileToStored(p: UserProfile, password = '', salt = ''): StoredUser {
+  return { ...p, password, salt } as unknown as StoredUser;
+}
+
+/* ─── Initial data from db ─── */
+const initialUsers: UserProfile[] = db.getUsers().map(storedToProfile);
+const initialGroups: Group[] = db.getGroups().map(storedToGroup);
 
 interface UserStore {
   users:  UserProfile[];
   groups: Group[];
 
-  // Users
   addUser:    (data: Omit<UserProfile, 'id' | 'createdAt'>) => { ok: boolean; error?: string };
   updateUser: (id: string, patch: Partial<UserProfile>) => { ok: boolean; error?: string };
   deleteUser: (id: string) => { ok: boolean; error?: string };
   setUserStatus: (id: string, status: UserProfile['status']) => void;
   setUserProtocols: (id: string, protocols: Pick<UserProfile, 'canSMB'|'canFTP'|'canSFTP'|'canSSH'>) => void;
 
-  // Groups
   addGroup:    (data: Omit<Group, 'id'>) => { ok: boolean; error?: string };
   updateGroup: (id: string, patch: Partial<Group>) => { ok: boolean; error?: string };
   deleteGroup: (id: string) => { ok: boolean; error?: string };
@@ -106,15 +48,14 @@ interface UserStore {
   removeGroupMember: (groupId: string, userId: string) => void;
   setGroupPermission: (groupId: string, folderId: string, perm: Permission) => void;
 
-  // Queries
   getUserGroups: (userId: string) => Group[];
   getGroupUsers: (groupId: string) => UserProfile[];
   canAccess:     (userId: string, folderId: string, required: Permission) => boolean;
 }
 
 export const useUserStore = create<UserStore>((set, get) => ({
-  users:  INITIAL_USERS,
-  groups: INITIAL_GROUPS,
+  users:  initialUsers,
+  groups: initialGroups,
 
   /* ─ Users ─ */
   addUser: (data) => {
@@ -126,14 +67,17 @@ export const useUserStore = create<UserStore>((set, get) => ({
       return { ok: false, error: `El usuario "${username}" ya existe` };
     if (email === '' && data.email?.trim()) return { ok: false, error: 'Email inválido' };
 
-    const user: UserProfile = {
+    const profile: UserProfile = {
       ...data,
       id: genId('u'),
       username,
       email,
       createdAt: new Date().toLocaleDateString('es-ES'),
     };
-    set(s => ({ users: [...s.users, user] }));
+
+    const stored = profileToStored(profile);
+    db.addUser(stored);
+    set(s => ({ users: [...s.users, profile] }));
     return { ok: true };
   },
 
@@ -142,6 +86,10 @@ export const useUserStore = create<UserStore>((set, get) => ({
     if (patch.username) sanitizedPatch.username = sanitize(patch.username).toLowerCase();
     if (patch.email)    sanitizedPatch.email    = sanitizeEmail(patch.email);
     if (patch.displayName) sanitizedPatch.displayName = sanitize(patch.displayName);
+
+    const updated = db.updateUser(id, sanitizedPatch as Partial<StoredUser>);
+    if (!updated) return { ok: false, error: 'Usuario no encontrado' };
+
     set(s => ({
       users: s.users.map(u => u.id === id ? { ...u, ...sanitizedPatch } : u),
     }));
@@ -152,6 +100,8 @@ export const useUserStore = create<UserStore>((set, get) => ({
     const user = get().users.find(u => u.id === id);
     if (!user) return { ok: false, error: 'Usuario no encontrado' };
     if (user.username === 'admin') return { ok: false, error: 'No se puede eliminar la cuenta admin' };
+
+    db.deleteUser(id);
     set(s => ({
       users:  s.users.filter(u => u.id !== id),
       groups: s.groups.map(g => ({ ...g, members: g.members.filter(m => m !== id) })),
@@ -159,11 +109,15 @@ export const useUserStore = create<UserStore>((set, get) => ({
     return { ok: true };
   },
 
-  setUserStatus: (id, status) =>
-    set(s => ({ users: s.users.map(u => u.id === id ? { ...u, status } : u) })),
+  setUserStatus: (id, status) => {
+    db.updateUser(id, { status } as Partial<StoredUser>);
+    set(s => ({ users: s.users.map(u => u.id === id ? { ...u, status } : u) }));
+  },
 
-  setUserProtocols: (id, protos) =>
-    set(s => ({ users: s.users.map(u => u.id === id ? { ...u, ...protos } : u) })),
+  setUserProtocols: (id, protos) => {
+    db.updateUser(id, protos as Partial<StoredUser>);
+    set(s => ({ users: s.users.map(u => u.id === id ? { ...u, ...protos } : u) }));
+  },
 
   /* ─ Groups ─ */
   addGroup: (data) => {
@@ -172,11 +126,13 @@ export const useUserStore = create<UserStore>((set, get) => ({
     if (get().groups.some(g => g.name === name))
       return { ok: false, error: `El grupo "${name}" ya existe` };
     const group: Group = { ...data, id: genId('g'), name, builtIn: false };
+    db.addGroup(group as unknown as StoredGroup);
     set(s => ({ groups: [...s.groups, group] }));
     return { ok: true };
   },
 
   updateGroup: (id, patch) => {
+    db.updateGroup(id, patch as Partial<StoredGroup>);
     set(s => ({
       groups: s.groups.map(g => g.id === id ? { ...g, ...patch } : g),
     }));
@@ -187,6 +143,8 @@ export const useUserStore = create<UserStore>((set, get) => ({
     const grp = get().groups.find(g => g.id === id);
     if (!grp) return { ok: false, error: 'Grupo no encontrado' };
     if (grp.builtIn) return { ok: false, error: 'Los grupos del sistema no se pueden eliminar' };
+
+    db.deleteGroup(id);
     set(s => ({
       groups: s.groups.filter(g => g.id !== id),
       users:  s.users.map(u => ({ ...u, groups: u.groups.filter(gid => gid !== id) })),
@@ -194,7 +152,12 @@ export const useUserStore = create<UserStore>((set, get) => ({
     return { ok: true };
   },
 
-  addGroupMember: (groupId, userId) =>
+  addGroupMember: (groupId, userId) => {
+    const g = get().groups.find(g => g.id === groupId);
+    if (g) {
+      const updatedMembers = g.members.includes(userId) ? g.members : [...g.members, userId];
+      db.updateGroup(groupId, { members: updatedMembers });
+    }
     set(s => ({
       groups: s.groups.map(g =>
         g.id === groupId && !g.members.includes(userId)
@@ -206,9 +169,14 @@ export const useUserStore = create<UserStore>((set, get) => ({
           ? { ...u, groups: [...u.groups, groupId] }
           : u
       ),
-    })),
+    }));
+  },
 
-  removeGroupMember: (groupId, userId) =>
+  removeGroupMember: (groupId, userId) => {
+    const g = get().groups.find(g => g.id === groupId);
+    if (g) {
+      db.updateGroup(groupId, { members: g.members.filter(m => m !== userId) });
+    }
     set(s => ({
       groups: s.groups.map(g =>
         g.id === groupId ? { ...g, members: g.members.filter(m => m !== userId) } : g
@@ -216,14 +184,21 @@ export const useUserStore = create<UserStore>((set, get) => ({
       users: s.users.map(u =>
         u.id === userId ? { ...u, groups: u.groups.filter(gid => gid !== groupId) } : u
       ),
-    })),
+    }));
+  },
 
-  setGroupPermission: (groupId, folderId, perm) =>
+  setGroupPermission: (groupId, folderId, perm) => {
+    const g = get().groups.find(g => g.id === groupId);
+    if (g) {
+      const newPerms = { ...g.permissions, [folderId]: perm };
+      db.updateGroup(groupId, { permissions: newPerms as unknown as Record<string, string> });
+    }
     set(s => ({
       groups: s.groups.map(g =>
         g.id === groupId ? { ...g, permissions: { ...g.permissions, [folderId]: perm } } : g
       ),
-    })),
+    }));
+  },
 
   /* ─ Queries ─ */
   getUserGroups: (userId) => get().groups.filter(g => g.members.includes(userId)),
