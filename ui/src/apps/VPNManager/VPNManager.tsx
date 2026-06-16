@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Shield, Plus, Trash2, Settings, RefreshCw, Download, AlertCircle } from 'lucide-react';
 import { useSystemStore } from '../../store/systemStore';
+import { db, type StoredVPNConfig } from '../../store/dbService';
 import './VPNManager.css';
 
 /* ─── Types ─── */
@@ -22,48 +23,36 @@ interface VPNProfile {
   location: string;
 }
 
-const INITIAL_PROFILES: VPNProfile[] = [
-  {
-    id: '1', name: 'VPN Casa',       protocol: 'WireGuard', server: 'vpn.lgmos.local',  port: 51820,
-    status: 'disconnected', location: '🏠 Local',     bytesIn: 0,    bytesOut: 0,
-  },
-  {
-    id: '2', name: 'VPN Oficina',    protocol: 'WireGuard', server: '45.76.10.22',       port: 51820,
-    status: 'disconnected',    location: '🏢 Remoto',    bytesIn: 0, bytesOut: 0,
-    lastConnected: '15/06/2025 12:45',
-  },
-  {
-    id: '3', name: 'OpenVPN EU',     protocol: 'OpenVPN',   server: 'eu1.vpnserver.com', port: 1194,
-    status: 'disconnected', location: '🇪🇺 Europa',   bytesIn: 0,    bytesOut: 0,
-  },
-];
-
 function formatBytes(bytes: number): string {
   if (bytes === 0) return '—';
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+/* ─── Load persisted data ─── */
+function loadProfiles(): VPNProfile[] {
+  try {
+    const raw = localStorage.getItem('lgmos-vpn-profiles');
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return [
+    { id: '1', name: 'VPN Casa', protocol: 'WireGuard', server: 'vpn.lgmos.local', port: 51820, status: 'disconnected', location: '🏠 Local', bytesIn: 0, bytesOut: 0 },
+    { id: '2', name: 'VPN Oficina', protocol: 'WireGuard', server: '45.76.10.22', port: 51820, status: 'disconnected', location: '🏢 Remoto', bytesIn: 0, bytesOut: 0, lastConnected: '15/06/2025 12:45' },
+    { id: '3', name: 'OpenVPN EU', protocol: 'OpenVPN', server: 'eu1.vpnserver.com', port: 1194, status: 'disconnected', location: '🇪🇺 Europa', bytesIn: 0, bytesOut: 0 },
+  ];
+}
+function saveProfiles(profiles: VPNProfile[]) {
+  localStorage.setItem('lgmos-vpn-profiles', JSON.stringify(profiles));
+}
+
 type NavTab = 'profiles' | 'wg-config' | 'logs';
 
-/* ─── WireGuard config view ─── */
 function WGConfig() {
   const { addNotification } = useSystemStore();
-  const [peers] = useState([
-    { name: 'iPhone de Admin',   pubkey: 'abc123XYZ...', ip: '10.0.0.2/32', keepalive: 25, allowed: '0.0.0.0/0' },
-    { name: 'Laptop Trabajo',    pubkey: 'def456ABC...', ip: '10.0.0.3/32', keepalive: 25, allowed: '192.168.1.0/24' },
-    { name: 'Servidor Backup',   pubkey: 'ghi789DEF...', ip: '10.0.0.4/32', keepalive: 0,  allowed: '10.0.0.0/8' },
-  ]);
-  const [serverConfig] = useState({
-    interface: 'wg0',
-    address: '10.0.0.1/24',
-    port: 51820,
-    dns: '1.1.1.1, 8.8.8.8',
-    persistentKeepalive: true,
-  });
+  const [vpnCfg, setVpnCfg] = useState<StoredVPNConfig>(db.getVPNConfig);
 
   const downloadConfig = () => {
-    const cfg = `[Interface]\nAddress = ${serverConfig.address}\nListenPort = ${serverConfig.port}\nDNS = ${serverConfig.dns}\nPrivateKey = <HIDDEN>\n\n# Peers:\n${peers.map(p => `[Peer]\n# ${p.name}\nPublicKey = ${p.pubkey}\nAllowedIPs = ${p.ip}\nPersistentKeepalive = ${p.keepalive}`).join('\n\n')}`;
+    const cfg = `[Interface]\nAddress = ${vpnCfg.serverSubnet}\nListenPort = ${vpnCfg.serverPort}\nDNS = ${vpnCfg.serverDNS}\nPrivateKey = <HIDDEN>\n\n${vpnCfg.wgConfig}`;
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([cfg], { type: 'text/plain' }));
     a.download = 'wg0.conf';
@@ -77,38 +66,27 @@ function WGConfig() {
         <h3>Configuración WireGuard</h3>
         <button className="vpn__btn" onClick={downloadConfig}><Download size={13}/> Exportar wg0.conf</button>
       </div>
-
-      {/* Server config */}
       <div className="vpn__wg-server">
-        <div className="vpn__info-title">Servidor (wg0)</div>
+        <div className="vpn__info-title">Servidor ({vpnCfg.serverType === 'wireguard' ? 'wg0' : 'tun0'})</div>
         <div className="vpn__info-grid">
-          <div className="vpn__info-row"><span>Interfaz</span><code>{serverConfig.interface}</code></div>
-          <div className="vpn__info-row"><span>Dirección</span><code>{serverConfig.address}</code></div>
-          <div className="vpn__info-row"><span>Puerto</span><code>UDP {serverConfig.port}</code></div>
-          <div className="vpn__info-row"><span>DNS</span><code>{serverConfig.dns}</code></div>
-          <div className="vpn__info-row"><span>Clave pública</span><code>abc123XYZ...pub (click para copiar)</code></div>
+          <div className="vpn__info-row"><span>Tipo</span><code>{vpnCfg.serverType}</code></div>
+          <div className="vpn__info-row"><span>Subred</span><code>{vpnCfg.serverSubnet}</code></div>
+          <div className="vpn__info-row"><span>Puerto</span><code>{vpnCfg.serverProtocol.toUpperCase()} {vpnCfg.serverPort}</code></div>
+          <div className="vpn__info-row"><span>DNS</span><code>{vpnCfg.serverDNS}</code></div>
         </div>
       </div>
-
-      {/* Peers */}
-      <div className="vpn__info-title">Peers conectados</div>
+      <div className="vpn__info-title">Clientes ({vpnCfg.clients.length})</div>
       <div className="vpn__peers-table">
-        <div className="vpn__peers-header">
-          <span>Nombre</span><span>IP Asignada</span><span>Clave pública</span><span>IPs permitidas</span><span>Keepalive</span>
-        </div>
-        {peers.map(p => (
-          <div key={p.name} className="vpn__peers-row">
-            <span className="vpn__peer-name">{p.name}</span>
-            <code>{p.ip}</code>
-            <code className="vpn__key-truncate">{p.pubkey}</code>
-            <code>{p.allowed}</code>
-            <span>{p.keepalive > 0 ? `${p.keepalive}s` : '—'}</span>
+        <div className="vpn__peers-header"><span>Nombre</span><span>Tipo</span><span>Servidor</span><span>Estado</span></div>
+        {vpnCfg.clients.map(c => (
+          <div key={c.id} className="vpn__peers-row">
+            <span className="vpn__peer-name">{c.name}</span>
+            <code>{c.type}</code>
+            <code>{c.server}:{c.port}</code>
+            <span className={`vpn__status-badge vpn__status-badge--${c.status}`}>{c.status}</span>
           </div>
         ))}
       </div>
-      <button className="vpn__btn vpn__btn--primary" style={{ alignSelf: 'flex-start', marginTop: 8 }}>
-        <Plus size={13}/> Añadir peer
-      </button>
     </div>
   );
 }
@@ -116,57 +94,50 @@ function WGConfig() {
 export function VPNManager() {
   const { addNotification } = useSystemStore();
   const [tab, setTab] = useState<NavTab>('profiles');
-  const [profiles, setProfiles] = useState<VPNProfile[]>(INITIAL_PROFILES);
+  const [profiles, setProfiles] = useState<VPNProfile[]>(loadProfiles);
   const [showNew, setShowNew] = useState(false);
   const [newName, setNewName] = useState('');
   const [newProto, setNewProto] = useState<VPNProtocol>('WireGuard');
   const [newServer, setNewServer] = useState('');
 
+  const persist = (p: VPNProfile[]) => { setProfiles(p); saveProfiles(p); };
+
   const toggleConnect = (id: string) => {
     const prof = profiles.find(p => p.id === id)!;
     const wasConnected = prof.status === 'connected';
+    const updated = profiles.map(p => p.id === id ? { ...p, status: 'connecting' as VPNStatus } : p);
+    persist(updated);
 
-    setProfiles(prev => prev.map(p => p.id === id ? { ...p, status: 'connecting' } : p));
     setTimeout(() => {
-      setProfiles(prev => prev.map(p =>
-        p.id === id
-          ? {
-              ...p,
-              status: wasConnected ? 'disconnected' : 'connected',
-              duration: wasConnected ? undefined : '00:00:00',
-              lastConnected: wasConnected ? p.lastConnected : new Date().toLocaleString('es-ES'),
-              bytesIn:  wasConnected ? 0 : 0,
-              bytesOut: wasConnected ? 0 : 0,
-            }
-          : p
-      ));
-      addNotification(
-        wasConnected ? `${prof.name} desconectado` : `${prof.name} conectado`,
+      const done = profiles.map(p => p.id === id ? {
+        ...p,
+        status: (wasConnected ? 'disconnected' : 'connected') as VPNStatus,
+        duration: wasConnected ? undefined : '00:00:00',
+        lastConnected: wasConnected ? p.lastConnected : new Date().toLocaleString('es-ES'),
+        bytesIn: wasConnected ? 0 : p.bytesIn,
+        bytesOut: wasConnected ? 0 : p.bytesOut,
+      } : p);
+      persist(done);
+      addNotification(wasConnected ? `${prof.name} desconectado` : `${prof.name} conectado`,
         wasConnected ? 'Túnel VPN cerrado' : `Conectado via ${prof.protocol}`,
-        wasConnected ? 'info' : 'success'
-      );
+        wasConnected ? 'info' : 'success');
     }, 1200);
   };
 
   const addProfile = () => {
     if (!newServer.trim()) return;
     const prof: VPNProfile = {
-      id: Date.now().toString(),
-      name: newName || newServer,
-      protocol: newProto,
-      server: newServer,
-      port: newProto === 'WireGuard' ? 51820 : newProto === 'OpenVPN' ? 1194 : 500,
-      status: 'disconnected',
-      location: '🌍 Nuevo',
-      bytesIn: 0, bytesOut: 0,
+      id: Date.now().toString(), name: newName || newServer, protocol: newProto,
+      server: newServer, port: newProto === 'WireGuard' ? 51820 : newProto === 'OpenVPN' ? 1194 : 500,
+      status: 'disconnected', location: '🌍 Nuevo', bytesIn: 0, bytesOut: 0,
     };
-    setProfiles(prev => [...prev, prof]);
+    persist([...profiles, prof]);
     addNotification('Perfil VPN añadido', `${prof.name} (${prof.protocol})`, 'success');
     setShowNew(false); setNewName(''); setNewServer('');
   };
 
   const deleteProfile = (id: string, name: string) => {
-    setProfiles(prev => prev.filter(p => p.id !== id));
+    persist(profiles.filter(p => p.id !== id));
     addNotification('Perfil eliminado', name, 'warning');
   };
 
@@ -178,97 +149,48 @@ export function VPNManager() {
 
   return (
     <div className="vpn">
-      {/* Sidebar */}
       <div className="vpn__sidebar">
-        <div className="vpn__sidebar-logo">
-          <div className="vpn__sidebar-logo-icon"><Shield size={18}/></div>
-          <span>VPN Manager</span>
-        </div>
+        <div className="vpn__sidebar-logo"><div className="vpn__sidebar-logo-icon"><Shield size={18}/></div><span>VPN Manager</span></div>
         {TABS.map(t => (
-          <button key={t.id} className={`vpn__nav-item ${tab === t.id ? 'vpn__nav-item--active' : ''}`} onClick={() => setTab(t.id)}>
-            {t.label}
-          </button>
+          <button key={t.id} className={`vpn__nav-item ${tab === t.id ? 'vpn__nav-item--active' : ''}`} onClick={() => setTab(t.id)}>{t.label}</button>
         ))}
-
-        {/* Active connection summary */}
         {profiles.filter(p => p.status === 'connected').map(p => (
-          <div key={p.id} className="vpn__active-badge">
-            <div className="vpn__active-dot"/>
-            <div>
-              <p className="vpn__active-name">{p.name}</p>
-              <p className="vpn__active-meta">{p.protocol} · {p.duration}</p>
-            </div>
-          </div>
+          <div key={p.id} className="vpn__active-badge"><div className="vpn__active-dot"/><div><p className="vpn__active-name">{p.name}</p><p className="vpn__active-meta">{p.protocol} · {p.duration}</p></div></div>
         ))}
       </div>
 
-      {/* Main */}
       <div className="vpn__main">
         {tab === 'profiles' && (
           <div className="vpn__section">
-            <div className="vpn__section-header">
-              <h3>Perfiles VPN</h3>
-              <button className="vpn__btn vpn__btn--primary" onClick={() => setShowNew(v => !v)}>
-                <Plus size={13}/> Nuevo perfil
-              </button>
-            </div>
-
+            <div className="vpn__section-header"><h3>Perfiles VPN</h3><button className="vpn__btn vpn__btn--primary" onClick={() => setShowNew(v => !v)}><Plus size={13}/> Nuevo perfil</button></div>
             {showNew && (
               <div className="vpn__new-form">
                 <input className="vpn__input" placeholder="Nombre del perfil" value={newName} onChange={e => setNewName(e.target.value)} autoFocus/>
                 <input className="vpn__input" placeholder="Servidor / IP *" value={newServer} onChange={e => setNewServer(e.target.value)}/>
                 <select className="vpn__input" value={newProto} onChange={e => setNewProto(e.target.value as VPNProtocol)}>
-                  <option>WireGuard</option>
-                  <option>OpenVPN</option>
-                  <option>IKEv2</option>
-                  <option>L2TP/IPSec</option>
+                  <option>WireGuard</option><option>OpenVPN</option><option>IKEv2</option><option>L2TP/IPSec</option>
                 </select>
                 <button className="vpn__btn vpn__btn--primary" onClick={addProfile}>Guardar</button>
                 <button className="vpn__btn" onClick={() => setShowNew(false)}>Cancelar</button>
               </div>
             )}
-
             <div className="vpn__profiles-list">
               {profiles.map(prof => (
                 <div key={prof.id} className={`vpn__profile-card ${prof.status === 'connected' ? 'vpn__profile-card--connected' : ''}`}>
                   <div className="vpn__profile-top">
-                    <div className="vpn__profile-icon">
-                      <Shield size={18} style={{ color: prof.status === 'connected' ? '#00b87c' : 'var(--text-muted)' }}/>
-                    </div>
+                    <div className="vpn__profile-icon"><Shield size={18} style={{ color: prof.status === 'connected' ? '#00b87c' : 'var(--text-muted)' }}/></div>
                     <div className="vpn__profile-info">
                       <span className="vpn__profile-name">{prof.name}</span>
                       <span className="vpn__profile-meta">{prof.protocol} · {prof.server}:{prof.port}</span>
                       <span className="vpn__profile-location">{prof.location}</span>
                     </div>
                     <div className="vpn__profile-right">
-                      {prof.status === 'error' && <AlertCircle size={14} style={{ color: 'var(--color-error)' }}/>}
-                      <button
-                        className={`vpn__connect-btn ${prof.status === 'connected' ? 'vpn__connect-btn--on' : ''}`}
-                        onClick={() => toggleConnect(prof.id)}
-                        disabled={prof.status === 'connecting'}
-                      >
-                        {prof.status === 'connecting' ? (
-                          <><RefreshCw size={12} className="vpn__spin"/> Conectando</>
-                        ) : prof.status === 'connected' ? (
-                          'Desconectar'
-                        ) : 'Conectar'}
+                      <button className={`vpn__connect-btn ${prof.status === 'connected' ? 'vpn__connect-btn--on' : ''}`} onClick={() => toggleConnect(prof.id)} disabled={prof.status === 'connecting'}>
+                        {prof.status === 'connecting' ? <><RefreshCw size={12} className="vpn__spin"/> Conectando</> : prof.status === 'connected' ? 'Desconectar' : 'Conectar'}
                       </button>
                     </div>
                   </div>
-
-                  {prof.status === 'connected' && (
-                    <div className="vpn__profile-stats">
-                      <div className="vpn__stat-item"><span>Duración</span><strong>{prof.duration}</strong></div>
-                      <div className="vpn__stat-item"><span>↓ Recibido</span><strong>{formatBytes(prof.bytesIn)}</strong></div>
-                      <div className="vpn__stat-item"><span>↑ Enviado</span><strong>{formatBytes(prof.bytesOut)}</strong></div>
-                      <div className="vpn__stat-item"><span>IP túnel</span><strong>10.0.0.2</strong></div>
-                    </div>
-                  )}
-
-                  {prof.lastConnected && prof.status !== 'connected' && (
-                    <div className="vpn__last-connected">Último acceso: {prof.lastConnected}</div>
-                  )}
-
+                  {prof.lastConnected && prof.status !== 'connected' && <div className="vpn__last-connected">Último acceso: {prof.lastConnected}</div>}
                   <div className="vpn__profile-footer">
                     <span className={`vpn__status-badge vpn__status-badge--${prof.status}`}>{prof.status}</span>
                     <div style={{ marginLeft: 'auto', display: 'flex', gap: 4 }}>
@@ -281,9 +203,7 @@ export function VPNManager() {
             </div>
           </div>
         )}
-
         {tab === 'wg-config' && <WGConfig/>}
-
         {tab === 'logs' && (
           <div className="vpn__section">
             <div className="vpn__section-header"><h3>Registros VPN</h3></div>

@@ -38,7 +38,7 @@ function UserDetail({
   user: UserProfile | null;
   groups: Group[];
   onClose: () => void;
-  onSave: (id: string, patch: Partial<UserProfile>) => void;
+  onSave: (id: string, patch: Partial<UserProfile>) => { ok: boolean; error?: string };
 }) {
   const [form, setForm] = useState<Partial<UserProfile>>(user ?? {
     username: '', displayName: '', email: '', isAdmin: false,
@@ -60,10 +60,11 @@ function UserDetail({
       if (!res.ok) { setError(res.error ?? 'Error'); return; }
       addNotification('Usuario creado', `"${form.username}" creado correctamente`, 'success');
     } else {
-      onSave(user.id, form);
+      const res = onSave(user.id, form);
+      if (!res.ok) { setError(res.error ?? 'Error al actualizar'); return; }
       addNotification('Usuario actualizado', `"${form.username}" guardado`, 'success');
+      onClose();
     }
-    onClose();
   };
 
   const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
@@ -171,7 +172,7 @@ function GroupDetail({
       updateGroup(group.id, { name, description: desc });
       addNotification('Grupo actualizado', name, 'success');
     }
-    onClose();
+    if (isNew) onClose();
   };
 
   return (
