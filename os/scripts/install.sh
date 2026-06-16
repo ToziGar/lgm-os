@@ -47,7 +47,8 @@ fi
 
 # 4. Build de la UI
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-UI_SRC="$SCRIPT_DIR/../ui"
+PROJECT_ROOT="$SCRIPT_DIR/../.."
+UI_SRC="$PROJECT_ROOT/ui"
 
 if [[ ! -d "$UI_SRC" ]]; then
     fail "No se encontró el directorio ui/ en $UI_SRC"
@@ -61,13 +62,13 @@ npm run build
 # 5. Instalar UI
 log "Instalando UI en $UI_DIST..."
 mkdir -p "$UI_DIST"
-cp -r os/ui-dist/* "$UI_DIST/" 2>/dev/null || cp -r dist/* "$UI_DIST/"
+cp -r dist/* "$UI_DIST/"
 chown -R www-data:www-data "$UI_DIST"
 chmod -R 755 "$UI_DIST"
 
 # 6. Configurar nginx
 log "Configurando nginx..."
-cp "$SCRIPT_DIR/../os/nginx/lgm-os.conf" /etc/nginx/sites-available/lgm-os
+cp "$PROJECT_ROOT/os/nginx/lgm-os.conf" /etc/nginx/sites-available/lgm-os
 ln -sf /etc/nginx/sites-available/lgm-os /etc/nginx/sites-enabled/lgm-os
 rm -f /etc/nginx/sites-enabled/default
 nginx -t || fail "Configuración nginx inválida"
@@ -102,8 +103,8 @@ chown -R lgmkiosk:lgmkiosk /home/lgmkiosk/.config
 
 # 8. Instalar servicios systemd
 log "Instalando servicios systemd..."
-cp "$SCRIPT_DIR/../os/systemd/lgm-ui.service"    /etc/systemd/system/
-cp "$SCRIPT_DIR/../os/systemd/lgm-kiosk.service" /etc/systemd/system/
+cp "$PROJECT_ROOT/os/systemd/lgm-ui.service"    /etc/systemd/system/
+cp "$PROJECT_ROOT/os/systemd/lgm-kiosk.service" /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable lgm-kiosk
 

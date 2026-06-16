@@ -1,0 +1,12 @@
+node_modules/
+dist/
+os/ui-dist/
+.git/
+.gitignore
+.dockerignore
+README.md
+.vscode/
+.idea/
+*.log
+build/output/
+**/*.tsbuildinfo

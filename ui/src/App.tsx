@@ -1,5 +1,6 @@
 import { useWindowStore } from './store/windowStore';
 import { useSystemStore } from './store/systemStore';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { LoginScreen } from './components/LoginScreen/LoginScreen';
 import { Desktop } from './components/Desktop/Desktop';
 import { Taskbar } from './components/Taskbar/Taskbar';
@@ -52,6 +53,7 @@ export default function App() {
   const { windows } = useWindowStore();
 
   return (
+    <ErrorBoundary>
     <div data-theme={theme} style={{ width: '100vw', height: '100vh', position: 'relative', overflow: 'hidden' }}>
       {!isLoggedIn ? (
         <LoginScreen />
@@ -83,5 +85,6 @@ export default function App() {
         </>
       )}
     </div>
+    </ErrorBoundary>
   );
 }

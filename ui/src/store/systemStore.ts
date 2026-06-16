@@ -92,9 +92,34 @@ interface SystemStore {
 
 let notifId = 1;
 
+function loadSession(): { isLoggedIn: boolean; user: User | null } {
+  try {
+    const raw = localStorage.getItem('lgmos-session');
+    if (raw) {
+      const data = JSON.parse(raw);
+      if (data && typeof data.isLoggedIn === 'boolean' && data.user) {
+        return { isLoggedIn: data.isLoggedIn, user: data.user as User };
+      }
+    }
+  } catch { /* corrupted data, reset session */ }
+  return { isLoggedIn: false, user: null };
+}
+
+function saveSession(user: User) {
+  try {
+    localStorage.setItem('lgmos-session', JSON.stringify({ isLoggedIn: true, user }));
+  } catch { /* quota exceeded, silently ignore */ }
+}
+
+function clearSession() {
+  try { localStorage.removeItem('lgmos-session'); } catch { /* ignore */ }
+}
+
+const savedSession = loadSession();
+
 export const useSystemStore = create<SystemStore>((set, get) => ({
-  isLoggedIn: false,
-  user: null,
+  isLoggedIn: savedSession.isLoggedIn,
+  user: savedSession.user,
   theme: (localStorage.getItem('lgmos-theme') as Theme) || 'light',
   notifications: [],
   showLaunchPad: false,
@@ -121,10 +146,12 @@ export const useSystemStore = create<SystemStore>((set, get) => ({
     recordAttempt(username, valid);
 
     if (valid) {
+      const user: User = { username, displayName: record.displayName, isAdmin: record.isAdmin };
+      saveSession(user);
       set({
         isLoggedIn: true,
         loginError: '',
-        user: { username, displayName: record.displayName, isAdmin: record.isAdmin },
+        user,
         showLaunchPad: false,
       });
       setTimeout(() => {
@@ -141,11 +168,14 @@ export const useSystemStore = create<SystemStore>((set, get) => ({
     return false;
   },
 
-  logout: () => set({
-    isLoggedIn: false, user: null,
-    showLaunchPad: false, showNotifications: false,
-    loginError: '',
-  }),
+  logout: () => {
+    clearSession();
+    set({
+      isLoggedIn: false, user: null,
+      showLaunchPad: false, showNotifications: false,
+      loginError: '',
+    });
+  },
 
   toggleTheme: () =>
     set((state) => {
