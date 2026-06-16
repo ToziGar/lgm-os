@@ -73,7 +73,6 @@ function NetworkSection() {
   ];
 
   const goToNetworkServices = () => {
-    const APPS = (window as any).__APPS__;
     openWindow('network-services', 'Servicios de Red', '🌐', 960, 640, 700, 480);
   };
 
