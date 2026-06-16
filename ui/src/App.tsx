@@ -15,6 +15,11 @@ import { SystemInfo } from './apps/SystemInfo/SystemInfo';
 import { Calculator } from './apps/Calculator/Calculator';
 import { NetworkServices } from './apps/NetworkServices/NetworkServices';
 import { SSHManager } from './apps/SSHManager/SSHManager';
+import { TaskManager } from './apps/TaskManager/TaskManager';
+import { LogCenter } from './apps/LogCenter/LogCenter';
+import { VPNManager } from './apps/VPNManager/VPNManager';
+import { UserManager } from './apps/UserManager/UserManager';
+import { StorageManager } from './apps/StorageManager/StorageManager';
 
 function renderApp(appId: string) {
   switch (appId) {
@@ -27,6 +32,11 @@ function renderApp(appId: string) {
     case 'calculator':        return <Calculator />;
     case 'network-services':  return <NetworkServices />;
     case 'ssh-manager':       return <SSHManager />;
+    case 'task-manager':      return <TaskManager />;
+    case 'log-center':        return <LogCenter />;
+    case 'vpn-manager':       return <VPNManager />;
+    case 'user-manager':      return <UserManager />;
+    case 'storage-manager':   return <StorageManager />;
     default: return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-secondary)' }}>
         Aplicación no encontrada

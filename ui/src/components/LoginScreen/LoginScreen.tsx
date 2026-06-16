@@ -9,35 +9,26 @@ const QUICK_USERS = [
 ];
 
 export function LoginScreen() {
-  const { login } = useSystemStore();
+  const { login, loginError } = useSystemStore();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading]   = useState(false);
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
 
   const handleQuickUser = (u: typeof QUICK_USERS[0]) => {
     setSelectedUser(u.username);
     setUsername(u.username);
-    setError('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username || !password) {
-      setError('Por favor ingresa usuario y contraseña');
-      return;
-    }
     setLoading(true);
-    setError('');
-    await new Promise((r) => setTimeout(r, 700));
-    const ok = login(username, password);
+    // Small delay for UX (prevents instant feedback that leaks timing)
+    await new Promise((r) => setTimeout(r, 400 + Math.random() * 300));
+    login(username, password);
     setLoading(false);
-    if (!ok) {
-      setError('Nombre de usuario o contraseña incorrectos');
-      setPassword('');
-    }
+    if (loginError) setPassword('');
   };
 
   return (
@@ -123,9 +114,9 @@ export function LoginScreen() {
             </div>
           </div>
 
-          {error && (
+          {loginError && (
             <p className="login__error">
-              <span>⚠</span> {error}
+              <span>⚠</span> {loginError}
             </p>
           )}
 

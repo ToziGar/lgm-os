@@ -237,6 +237,88 @@ export function IconVPN({ size = 32, style }: IconProps) {
   );
 }
 
+/* ── Task Manager ── */
+export function IconTaskManager({ size = 32, style }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 64 64" fill="none" style={style}>
+      <rect width="64" height="64" rx="14" fill="url(#tm-bg)"/>
+      <defs>
+        <linearGradient id="tm-bg" x1="0" y1="0" x2="64" y2="64">
+          <stop stopColor="#0f172a"/>
+          <stop offset="1" stopColor="#1e293b"/>
+        </linearGradient>
+      </defs>
+      <rect x="10" y="14" width="44" height="36" rx="4" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.1)" strokeWidth="1"/>
+      <polyline points="14,40 20,30 26,34 32,22 38,28 44,20 50,26" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <polyline points="14,44 20,40 26,42 32,36 38,38 44,32 50,34" fill="none" stroke="#3b82f6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.7"/>
+    </svg>
+  );
+}
+
+/* ── Log Center ── */
+export function IconLogCenter({ size = 32, style }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 64 64" fill="none" style={style}>
+      <rect width="64" height="64" rx="14" fill="url(#lc-bg)"/>
+      <defs>
+        <linearGradient id="lc-bg" x1="0" y1="0" x2="64" y2="64">
+          <stop stopColor="#1e40af"/>
+          <stop offset="1" stopColor="#1d4ed8"/>
+        </linearGradient>
+      </defs>
+      <rect x="12" y="12" width="40" height="40" rx="5" fill="rgba(255,255,255,0.08)"/>
+      <rect x="18" y="19" width="5" height="5" rx="1.5" fill="rgba(0,184,124,0.9)"/>
+      <rect x="18" y="29" width="5" height="5" rx="1.5" fill="rgba(245,158,11,0.9)"/>
+      <rect x="18" y="39" width="5" height="5" rx="1.5" fill="rgba(239,68,68,0.9)"/>
+      <rect x="27" y="21" width="19" height="2" rx="1" fill="rgba(255,255,255,0.5)"/>
+      <rect x="27" y="31" width="15" height="2" rx="1" fill="rgba(255,255,255,0.4)"/>
+      <rect x="27" y="41" width="17" height="2" rx="1" fill="rgba(255,255,255,0.35)"/>
+    </svg>
+  );
+}
+
+/* ── User Manager ── */
+export function IconUserManager({ size = 32, style }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 64 64" fill="none" style={style}>
+      <rect width="64" height="64" rx="14" fill="url(#um-bg)"/>
+      <defs>
+        <linearGradient id="um-bg" x1="0" y1="0" x2="64" y2="64">
+          <stop stopColor="#6366f1"/>
+          <stop offset="1" stopColor="#4f46e5"/>
+        </linearGradient>
+      </defs>
+      <circle cx="24" cy="22" r="7" fill="rgba(255,255,255,0.85)"/>
+      <path d="M10 46c0-8 6-12 14-12s14 4 14 12" fill="rgba(255,255,255,0.6)"/>
+      <circle cx="44" cy="20" r="5" fill="rgba(255,255,255,0.5)"/>
+      <path d="M34 42c0-5 4-9 10-9s10 4 10 9" fill="rgba(255,255,255,0.35)"/>
+    </svg>
+  );
+}
+
+/* ── Storage Manager ── */
+export function IconStorageManager({ size = 32, style }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 64 64" fill="none" style={style}>
+      <rect width="64" height="64" rx="14" fill="url(#stg-bg)"/>
+      <defs>
+        <linearGradient id="stg-bg" x1="0" y1="0" x2="64" y2="64">
+          <stop stopColor="#1d4ed8"/>
+          <stop offset="1" stopColor="#1e40af"/>
+        </linearGradient>
+      </defs>
+      <rect x="10" y="12" width="44" height="12" rx="3" fill="rgba(255,255,255,0.3)" stroke="rgba(255,255,255,0.5)" strokeWidth="1"/>
+      <rect x="10" y="26" width="44" height="12" rx="3" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.4)" strokeWidth="1"/>
+      <rect x="10" y="40" width="44" height="12" rx="3" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.3)" strokeWidth="1"/>
+      <circle cx="48" cy="18" r="3" fill="#00b87c"/>
+      <circle cx="48" cy="32" r="3" fill="#00b87c"/>
+      <circle cx="48" cy="46" r="3" fill="#f59e0b"/>
+      <rect x="14" y="15.5" width="18" height="5" rx="1.5" fill="rgba(255,255,255,0.5)"/>
+      <rect x="14" y="29.5" width="14" height="5" rx="1.5" fill="rgba(255,255,255,0.4)"/>
+    </svg>
+  );
+}
+
 /* ── App icon map — accepts id → returns React node ── */
 const ICON_MAP: Record<string, (props: IconProps) => JSX.Element> = {
   'file-station':      IconFileStation,
@@ -250,6 +332,11 @@ const ICON_MAP: Record<string, (props: IconProps) => JSX.Element> = {
   'ssh-manager':       IconSSH,
   'shared-folders':    IconSharedFolders,
   'vpn':               IconVPN,
+  'vpn-manager':       IconVPN,
+  'task-manager':      IconTaskManager,
+  'log-center':        IconLogCenter,
+  'user-manager':      IconUserManager,
+  'storage-manager':   IconStorageManager,
 };
 
 export function AppIconSVG({ appId, size = 32, style }: { appId: string; size?: number; style?: CSSProperties }) {

@@ -113,7 +113,8 @@ export function Desktop() {
               {/* Fallback emoji icon if no SVG */}
               {!['file-station','control-panel','package-center','terminal','text-editor',
                   'system-info','calculator','network-services','ssh-manager',
-                  'shared-folders','vpn'].includes(app.id) && (
+                  'shared-folders','vpn','vpn-manager','task-manager','log-center',
+                  'user-manager','storage-manager'].includes(app.id) && (
                 <span className="desktop__icon-emoji" style={{ background: app.color }}>{app.icon}</span>
               )}
             </div>

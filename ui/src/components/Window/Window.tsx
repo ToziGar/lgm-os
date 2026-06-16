@@ -51,7 +51,8 @@ export function AppWindow({ window: win, children }: Props) {
           <AppIconSVG appId={win.appId} size={16} />
           {!['file-station','control-panel','package-center','terminal','text-editor',
               'system-info','calculator','network-services','ssh-manager',
-              'shared-folders','vpn'].includes(win.appId) && win.icon}
+              'shared-folders','vpn','vpn-manager','task-manager','log-center',
+              'user-manager','storage-manager'].includes(win.appId) && win.icon}
         </span>
         <span className="window__title">{win.title}</span>
       </div>

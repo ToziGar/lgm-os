@@ -93,7 +93,8 @@ export function Taskbar() {
                 <AppIconSVG appId={app.id} size={20} />
                 {!['file-station','control-panel','package-center','terminal','text-editor',
                     'system-info','calculator','network-services','ssh-manager',
-                    'shared-folders','vpn'].includes(app.id) && (
+                    'shared-folders','vpn','vpn-manager','task-manager','log-center',
+                    'user-manager','storage-manager'].includes(app.id) && (
                   <span style={{ fontSize: 12 }}>{app.icon}</span>
                 )}
               </span>

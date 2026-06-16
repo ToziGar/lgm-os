@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { useSystemStore } from '../../store/systemStore';
 import { useWindowStore } from '../../store/windowStore';
+import { useUserStore } from '../../store/userStore';
 import './ControlPanel.css';
 
 type Section =
@@ -170,29 +171,38 @@ function StorageSection() {
 }
 
 function UsersSection() {
-  const users = [
-    { name: 'admin', role: 'Administrador', status: 'Activo' },
-    { name: 'lgm', role: 'Usuario', status: 'Activo' },
-    { name: 'invitado', role: 'Invitado', status: 'Inactivo' },
-  ];
+  const { users, groups } = useUserStore();
+  const { openWindow } = useWindowStore();
+
   return (
     <div className="cp__section">
       <h3 className="cp__section-title">Gestión de Usuarios</h3>
       <div className="cp__user-table">
         <div className="cp__user-header">
-          <span>Usuario</span><span>Rol</span><span>Estado</span>
+          <span>Usuario</span><span>Rol</span><span>Estado</span><span>Grupos</span>
         </div>
         {users.map((u) => (
-          <div key={u.name} className="cp__user-row">
-            <span className="cp__user-name">👤 {u.name}</span>
-            <span className="cp__badge cp__badge--role">{u.role}</span>
-            <span className={`cp__badge ${u.status === 'Activo' ? 'cp__badge--active' : 'cp__badge--inactive'}`}>
-              {u.status}
+          <div key={u.id} className="cp__user-row cp__user-row--wide">
+            <span className="cp__user-name">
+              <div className="cp__user-avatar">{u.displayName[0]}</div>
+              {u.displayName}
+            </span>
+            <span className={`cp__badge ${u.isAdmin ? 'cp__badge--role' : 'cp__badge--inactive'}`}>
+              {u.isAdmin ? 'Administrador' : 'Usuario'}
+            </span>
+            <span className={`cp__badge ${u.status === 'active' ? 'cp__badge--active' : 'cp__badge--inactive'}`}>
+              {u.status === 'active' ? 'Activo' : u.status === 'locked' ? 'Bloqueado' : 'Inactivo'}
+            </span>
+            <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+              {groups.filter(g => u.groups.includes(g.id)).map(g => g.name).join(', ')}
             </span>
           </div>
         ))}
       </div>
-      <button className="cp__save-btn" style={{ marginTop: 14 }}>+ Nuevo Usuario</button>
+      <button className="cp__save-btn" style={{ marginTop: 14 }}
+        onClick={() => openWindow('user-manager', 'Usuarios y Grupos', '👥', 1020, 640, 760, 480)}>
+        → Abrir Gestor de Usuarios
+      </button>
     </div>
   );
 }
