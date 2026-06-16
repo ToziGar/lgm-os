@@ -10,6 +10,222 @@
 .ted__toolbar {
   display: flex;
   align-items: center;
+  gap: 3px;
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-window-title);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.ted__toolbar-sep {
+  width: 1px;
+  height: 18px;
+  background: var(--border-color);
+  margin: 0 3px;
+}
+
+.ted__tool-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 9px;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: inherit;
+  transition: background var(--transition-fast), color var(--transition-fast);
+  white-space: nowrap;
+}
+.ted__tool-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+.ted__tool-btn--primary {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+}
+.ted__tool-btn--primary:hover { background: var(--color-primary-hover) !important; color: white !important; }
+.ted__tool-btn--saved { background: var(--color-success); border-color: var(--color-success); color: white; }
+.ted__tool-btn--active {
+  background: var(--bg-selected);
+  color: var(--color-primary);
+  border-color: rgba(45,123,255,0.3);
+}
+
+/* Find & replace bar */
+.ted__find-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: var(--bg-sidebar);
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+.ted__find-input {
+  background: var(--bg-input);
+  border: 1px solid var(--border-color-strong);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  color: var(--text-primary);
+  font-family: inherit;
+  outline: none;
+  width: 160px;
+}
+.ted__find-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-light);
+}
+.ted__find-arrow { color: var(--text-muted); font-size: 13px; }
+
+/* Tabs */
+.ted__tabs {
+  display: flex;
+  align-items: stretch;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-sidebar);
+  overflow-x: auto;
+  scrollbar-width: none;
+  flex-shrink: 0;
+}
+.ted__tabs::-webkit-scrollbar { display: none; }
+
+.ted__tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 13px;
+  background: none;
+  border: none;
+  border-right: 1px solid var(--border-color);
+  font-size: 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  transition: background var(--transition-fast), color var(--transition-fast);
+  position: relative;
+  user-select: none;
+}
+.ted__tab:hover { background: var(--bg-hover); color: var(--text-primary); }
+.ted__tab--active {
+  background: var(--bg-window) !important;
+  color: var(--text-primary) !important;
+  border-bottom: 2px solid var(--color-primary);
+  font-weight: 500;
+}
+.ted__tab-close {
+  margin-left: 2px;
+  font-size: 14px;
+  line-height: 1;
+  opacity: 0.45;
+  border-radius: 3px;
+  padding: 0 2px;
+  transition: opacity var(--transition-fast);
+  cursor: pointer;
+}
+.ted__tab-close:hover { opacity: 1; }
+
+.ted__tab-rename {
+  background: var(--bg-input);
+  border: 1px solid var(--color-primary);
+  border-radius: 3px;
+  padding: 1px 4px;
+  font-size: 12px;
+  font-family: inherit;
+  color: var(--text-primary);
+  outline: none;
+  width: 120px;
+}
+
+.ted__tab-add {
+  padding: 6px 14px;
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 0;
+  font-family: inherit;
+  transition: color var(--transition-fast);
+}
+.ted__tab-add:hover { color: var(--color-primary); }
+
+/* Editor */
+.ted__editor-wrap {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+.ted__lines {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding: 14px 8px 14px 6px;
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border-color);
+  overflow: hidden;
+  user-select: none;
+  min-width: 38px;
+}
+
+.ted__line-num {
+  font-family: 'Cascadia Code', 'Fira Code', monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.ted__textarea {
+  flex: 1;
+  background: var(--bg-window);
+  border: none;
+  outline: none;
+  resize: none;
+  padding: 14px 16px;
+  font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-primary);
+  tab-size: 2;
+  overflow: auto;
+}
+
+/* Status bar */
+.ted__status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 3px 12px;
+  background: var(--color-primary);
+  color: rgba(255,255,255,0.8);
+  font-size: 11px;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+.ted__status-sep {
+  width: 1px;
+  height: 10px;
+  background: rgba(255,255,255,0.3);
+}
+.ted__status-name {
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+/* Toolbar */
+.ted__toolbar {
+  display: flex;
+  align-items: center;
   gap: 4px;
   padding: 6px 10px;
   border-bottom: 1px solid var(--border-color);

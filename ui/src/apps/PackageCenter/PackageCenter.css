@@ -197,6 +197,29 @@
   flex: 1;
 }
 
+.pkg__progress-wrap {
+  position: relative;
+  height: 6px;
+  background: var(--border-color);
+  border-radius: 3px;
+  overflow: hidden;
+  margin: -2px 0 4px;
+}
+.pkg__progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-primary), #00b4d8);
+  border-radius: 3px;
+  transition: width 0.15s ease;
+}
+.pkg__progress-label {
+  position: absolute;
+  right: 6px;
+  top: -14px;
+  font-size: 10px;
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
 .pkg__card-footer {
   display: flex;
   align-items: center;

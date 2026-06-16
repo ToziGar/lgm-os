@@ -22,32 +22,32 @@ export function AppWindow({ window: win, children }: Props) {
       className={`window__titlebar ${win.isFocused ? 'window__titlebar--focused' : ''}`}
       onDoubleClick={() => maximizeWindow(win.id)}
     >
-      <div className="window__titlebar-left">
-        <span className="window__icon">{win.icon}</span>
-        <span className="window__title">{win.title}</span>
-      </div>
       <div className="window__titlebar-actions">
+        <button
+          className="window__btn window__btn--close"
+          onClick={(e) => { e.stopPropagation(); closeWindow(win.id); }}
+          title="Cerrar"
+        >
+          <X size={7} />
+        </button>
         <button
           className="window__btn window__btn--min"
           onClick={(e) => { e.stopPropagation(); minimizeWindow(win.id); }}
           title="Minimizar"
         >
-          <Minus size={11} />
+          <Minus size={7} />
         </button>
         <button
           className="window__btn window__btn--max"
           onClick={(e) => { e.stopPropagation(); maximizeWindow(win.id); }}
           title={win.isMaximized ? 'Restaurar' : 'Maximizar'}
         >
-          {win.isMaximized ? <Square size={11} /> : <Maximize2 size={11} />}
+          {win.isMaximized ? <Square size={7} /> : <Maximize2 size={7} />}
         </button>
-        <button
-          className="window__btn window__btn--close"
-          onClick={(e) => { e.stopPropagation(); closeWindow(win.id); }}
-          title="Cerrar"
-        >
-          <X size={11} />
-        </button>
+      </div>
+      <div className="window__titlebar-left">
+        <span className="window__icon">{win.icon}</span>
+        <span className="window__title">{win.title}</span>
       </div>
     </div>
   );

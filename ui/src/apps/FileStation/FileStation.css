@@ -174,13 +174,19 @@
 }
 
 .fs__list-row:hover { background: var(--bg-hover); }
-
 .fs__list-row--selected { background: var(--bg-selected) !important; }
 
 .fs__list-name {
   display: flex;
   align-items: center;
   gap: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.fs__list-name-text {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -191,14 +197,65 @@
   color: var(--text-secondary);
 }
 
+/* Search bar in toolbar */
+.fs__search-wrap {
+  position: relative;
+}
+.fs__search-icon {
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+.fs__search {
+  background: var(--bg-input);
+  border: 1px solid var(--border-color-strong);
+  border-radius: 6px;
+  padding: 4px 10px 4px 26px;
+  font-size: 12px;
+  color: var(--text-primary);
+  font-family: inherit;
+  outline: none;
+  width: 150px;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+.fs__search:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-light);
+  width: 200px;
+}
+.fs__search::placeholder { color: var(--text-muted); }
+
+.fs__view-toggle {
+  display: flex;
+  gap: 2px;
+}
+
+/* Rename input */
+.fs__rename-input {
+  background: var(--bg-input);
+  border: 1px solid var(--color-primary);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-size: 13px;
+  color: var(--text-primary);
+  font-family: inherit;
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-primary-light);
+  min-width: 0;
+  flex: 1;
+}
+
 /* Grid view */
 .fs__grid {
   flex: 1;
   overflow-y: auto;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-  gap: 8px;
-  padding: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+  gap: 6px;
+  padding: 12px;
   align-content: start;
 }
 
@@ -206,21 +263,20 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  padding: 10px 6px;
+  gap: 5px;
+  padding: 10px 6px 8px;
   border-radius: 8px;
   cursor: pointer;
   transition: background var(--transition-fast);
   border: 2px solid transparent;
 }
-
 .fs__grid-item:hover { background: var(--bg-hover); }
 .fs__grid-item--selected {
   background: var(--bg-selected) !important;
-  border-color: var(--color-primary-light);
+  border-color: rgba(45, 123, 255, 0.3);
 }
 
-.fs__grid-icon { font-size: 36px; }
+.fs__grid-icon { font-size: 34px; line-height: 1; }
 
 .fs__grid-name {
   font-size: 11px;
@@ -228,10 +284,11 @@
   color: var(--text-primary);
   word-break: break-word;
   line-height: 1.3;
+  max-width: 80px;
 }
 
 .fs__empty {
-  padding: 40px;
+  padding: 48px;
   text-align: center;
   color: var(--text-muted);
   font-size: 13px;
@@ -239,6 +296,9 @@
 
 /* Status bar */
 .fs__statusbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: 5px 14px;
   font-size: 11px;
   color: var(--text-muted);
@@ -246,3 +306,64 @@
   background: var(--bg-sidebar);
   flex-shrink: 0;
 }
+
+.fs__statusbar-filter {
+  color: var(--color-primary);
+  font-weight: 500;
+}
+
+/* Context menu */
+.fs__ctx {
+  position: fixed;
+  background: var(--bg-window);
+  border: 1px solid var(--border-color-strong);
+  border-radius: 9px;
+  padding: 5px;
+  min-width: 186px;
+  box-shadow: var(--shadow-dropdown);
+  z-index: 9999;
+  animation: ctxIn 0.1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes ctxIn {
+  from { opacity: 0; transform: scale(0.95) translateY(-4px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.fs__ctx-header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 10px 5px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.fs__ctx-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+.fs__ctx-sep {
+  height: 1px;
+  background: var(--border-color);
+  margin: 3px 5px;
+}
+.fs__ctx-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 10px;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--text-primary);
+  cursor: pointer;
+  font-family: inherit;
+  transition: background var(--transition-fast);
+  text-align: left;
+}
+.fs__ctx-item:hover { background: var(--bg-hover); }
+.fs__ctx-item--danger { color: var(--color-error); }
+.fs__ctx-item--danger:hover { background: var(--color-error-bg); }

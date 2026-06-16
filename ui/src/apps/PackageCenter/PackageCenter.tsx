@@ -47,11 +47,20 @@ export function PackageCenter() {
     return matchSearch && matchCat;
   });
 
+  const [progress, setProgress] = useState<Record<string, number>>({});
+
   const handleInstall = async (id: string) => {
     setInstalling(id);
-    await new Promise((r) => setTimeout(r, 1500));
+    setProgress((p) => ({ ...p, [id]: 0 }));
+    for (let i = 10; i <= 100; i += Math.round(10 + Math.random() * 15)) {
+      await new Promise((r) => setTimeout(r, 120 + Math.random() * 100));
+      setProgress((p) => ({ ...p, [id]: Math.min(i, 99) }));
+    }
+    setProgress((p) => ({ ...p, [id]: 100 }));
+    await new Promise((r) => setTimeout(r, 200));
     setPackages((prev) => prev.map((p) => (p.id === id ? { ...p, installed: true } : p)));
     setInstalling(null);
+    setProgress((p) => { const n = { ...p }; delete n[id]; return n; });
   };
 
   const handleUninstall = (id: string) => {
@@ -125,6 +134,13 @@ export function PackageCenter() {
 
                 <p className="pkg__card-desc">{pkg.description}</p>
 
+                {installing === pkg.id && progress[pkg.id] !== undefined && (
+                  <div className="pkg__progress-wrap">
+                    <div className="pkg__progress-bar" style={{ width: `${progress[pkg.id]}%` }} />
+                    <span className="pkg__progress-label">{progress[pkg.id]}%</span>
+                  </div>
+                )}
+
                 <div className="pkg__card-footer">
                   <span className="pkg__card-cat">{pkg.category}</span>
                   <span className="pkg__card-size">{pkg.size}</span>
@@ -136,16 +152,12 @@ export function PackageCenter() {
                     <button
                       className="pkg__btn pkg__btn--install"
                       onClick={() => handleInstall(pkg.id)}
-                      disabled={installing === pkg.id}
+                      disabled={!!installing}
                     >
                       {installing === pkg.id ? (
-                        <>
-                          <span className="pkg__spinner" /> Instalando…
-                        </>
+                        <><span className="pkg__spinner" /> Instalando&hellip;</>
                       ) : (
-                        <>
-                          <Download size={12} /> Instalar
-                        </>
+                        <><Download size={12} /> Instalar</>
                       )}
                     </button>
                   )}

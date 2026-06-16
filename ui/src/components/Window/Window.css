@@ -7,6 +7,132 @@
   box-shadow: var(--shadow-window);
   overflow: hidden;
   transition: box-shadow var(--transition-fast);
+  will-change: transform;
+}
+
+.window--focused {
+  box-shadow: var(--shadow-window-focused);
+  border-color: rgba(45, 123, 255, 0.2);
+}
+
+.window--maximized {
+  position: fixed !important;
+  inset: 0 !important;
+  bottom: var(--taskbar-height) !important;
+  border-radius: 0 !important;
+  border: none !important;
+  border-top: 1px solid var(--border-color) !important;
+}
+
+/* Title bar */
+.window__titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 34px;
+  padding: 0 10px 0 12px;
+  background: var(--bg-window-title);
+  border-bottom: 1px solid var(--border-color);
+  cursor: default;
+  user-select: none;
+  flex-shrink: 0;
+  border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+  transition: background var(--transition-fast);
+}
+
+.window__titlebar--focused {
+  background: var(--bg-window-title-focused);
+}
+
+.window--maximized .window__titlebar {
+  border-radius: 0;
+}
+
+.window__titlebar-left {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  overflow: hidden;
+  flex: 1;
+  min-width: 0;
+}
+
+.window__icon {
+  font-size: 14px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.window__title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  letter-spacing: 0.1px;
+}
+
+.window__titlebar--focused .window__title {
+  color: var(--text-primary);
+}
+
+/* Traffic light buttons */
+.window__titlebar-actions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.window__btn {
+  width: 13px;
+  height: 13px;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: filter var(--transition-fast), transform var(--transition-fast);
+  color: transparent;
+  flex-shrink: 0;
+  font-size: 0;
+}
+
+.window__btn svg {
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.window__titlebar:hover .window__btn svg,
+.window__btn:focus svg {
+  opacity: 1;
+}
+
+.window__btn:hover {
+  filter: brightness(0.88);
+  transform: scale(1.08);
+}
+.window__btn:active { transform: scale(0.94); }
+
+.window__btn--close  { background: #ff5f57; }
+.window__btn--min    { background: #ffbd2e; }
+.window__btn--max    { background: #28c840; }
+
+.window__btn--close:hover  { color: rgba(100, 0, 0, 0.6); }
+.window__btn--min:hover    { color: rgba(100, 60, 0, 0.6); }
+.window__btn--max:hover    { color: rgba(0, 60, 10, 0.6); }
+
+/* Content */
+.window__content {
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  color: var(--text-primary);
+  background: var(--bg-window);
 }
 
 .window--focused {
