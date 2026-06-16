@@ -34,4 +34,7 @@ LABEL org.opencontainers.image.title="LGM OS"
 LABEL org.opencontainers.image.version="1.0.0"
 LABEL org.opencontainers.image.description="LGM OS — Web-based OS interface"
 
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD curl -f http://localhost/ || exit 1
+
 CMD ["nginx", "-g", "daemon off;"]
