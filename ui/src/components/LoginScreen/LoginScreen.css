@@ -1,0 +1,204 @@
+.login {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  overflow: hidden;
+}
+
+.login__bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 20% 80%, rgba(0, 86, 179, 0.35) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(0, 168, 232, 0.25) 0%, transparent 50%),
+    linear-gradient(135deg, #0a0e1a 0%, #111827 40%, #0f1e3a 100%);
+}
+
+.login__bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(255,255,255,0.04) 1px, transparent 0);
+  background-size: 40px 40px;
+}
+
+.login__card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  padding: 48px 44px;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255,255,255,0.05);
+  animation: loginFadeIn 0.4s ease;
+}
+
+@keyframes loginFadeIn {
+  from { opacity: 0; transform: translateY(20px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.login__logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.login__logo-icon {
+  font-size: 36px;
+  line-height: 1;
+  filter: drop-shadow(0 0 12px rgba(0, 168, 232, 0.7));
+  animation: pulse 3s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { filter: drop-shadow(0 0 10px rgba(0, 168, 232, 0.6)); }
+  50%       { filter: drop-shadow(0 0 20px rgba(0, 168, 232, 0.9)); }
+}
+
+.login__logo-text {
+  font-size: 32px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.5px;
+}
+
+.login__logo-text span {
+  color: #00a8e8;
+}
+
+.login__subtitle {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 32px;
+}
+
+.login__form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.login__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.login__label {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.login__input {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 14px;
+  color: #ffffff;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  font-family: inherit;
+}
+
+.login__input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.login__input:focus {
+  border-color: #00a8e8;
+  box-shadow: 0 0 0 3px rgba(0, 168, 232, 0.18);
+}
+
+.login__input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.login__error {
+  font-size: 13px;
+  color: #f87171;
+  background: rgba(220, 38, 38, 0.12);
+  border: 1px solid rgba(220, 38, 38, 0.25);
+  border-radius: 6px;
+  padding: 8px 12px;
+}
+
+.login__btn {
+  background: linear-gradient(135deg, #0056b3 0%, #00a8e8 100%);
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  cursor: pointer;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: opacity 0.15s ease, transform 0.1s ease;
+  font-family: inherit;
+  height: 44px;
+}
+
+.login__btn:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.login__btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.login__btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.75;
+}
+
+.login__spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.login__hint {
+  margin-top: 20px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.35);
+  text-align: center;
+}
+
+.login__hint strong {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.login__footer {
+  position: absolute;
+  bottom: 20px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.25);
+}

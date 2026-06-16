@@ -1,0 +1,28 @@
+[Unit]
+Description=LGM OS Kiosk Browser (Chromium fullscreen)
+After=graphical.target lgm-ui.service
+Requires=lgm-ui.service
+
+[Service]
+Environment=DISPLAY=:0
+Environment=XAUTHORITY=/home/lgmkiosk/.Xauthority
+User=lgmkiosk
+ExecStartPre=/bin/sleep 3
+ExecStart=/usr/bin/chromium-browser \
+    --kiosk \
+    --no-sandbox \
+    --disable-infobars \
+    --disable-session-crashed-bubble \
+    --disable-restore-on-startup \
+    --noerrdialogs \
+    --disable-translate \
+    --overscroll-history-navigation=0 \
+    --disable-pinch \
+    --app=http://localhost \
+    --window-size=1920,1080 \
+    --window-position=0,0
+Restart=always
+RestartSec=5s
+
+[Install]
+WantedBy=graphical.target

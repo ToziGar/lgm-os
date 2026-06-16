@@ -1,0 +1,112 @@
+/* ============================================================
+   LGM OS — Global Styles & Design Tokens
+   ============================================================ */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+
+  /* Brand */
+  --color-primary: #0056b3;
+  --color-primary-hover: #004494;
+  --color-primary-light: rgba(0, 86, 179, 0.12);
+  --color-accent: #00a8e8;
+
+  /* Status */
+  --color-success: #16a34a;
+  --color-warning: #d97706;
+  --color-error: #dc2626;
+  --color-info: #2563eb;
+
+  /* Light theme — windows & surfaces */
+  --bg-body: #e8eaf0;
+  --bg-window: #ffffff;
+  --bg-window-title: #f4f5f7;
+  --bg-window-title-focused: linear-gradient(180deg, #e8f0fe 0%, #dde8fb 100%);
+  --bg-sidebar: #f9fafb;
+  --bg-input: #ffffff;
+  --bg-hover: rgba(0, 0, 0, 0.05);
+  --bg-selected: rgba(0, 86, 179, 0.1);
+
+  /* Text */
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+  --text-inverse: #ffffff;
+  --text-link: #0056b3;
+
+  /* Borders */
+  --border-color: #e5e7eb;
+  --border-color-strong: #d1d5db;
+  --border-radius-sm: 4px;
+  --border-radius: 8px;
+  --border-radius-lg: 12px;
+  --border-radius-xl: 16px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-window: 0 20px 60px rgba(0, 0, 0, 0.28), 0 4px 16px rgba(0, 0, 0, 0.14);
+  --shadow-taskbar: 0 -2px 12px rgba(0, 0, 0, 0.2);
+  --shadow-launchpad: inset 0 0 0 1px rgba(255,255,255,0.08);
+
+  /* Taskbar */
+  --taskbar-height: 52px;
+  --taskbar-bg: rgba(18, 18, 28, 0.94);
+
+  /* Transitions */
+  --transition-fast: 0.12s ease;
+  --transition-normal: 0.22s ease;
+  --transition-slow: 0.35s ease;
+}
+
+/* Dark theme */
+[data-theme="dark"] {
+  --bg-body: #0d0f1a;
+  --bg-window: #1a1d2e;
+  --bg-window-title: #141624;
+  --bg-window-title-focused: linear-gradient(180deg, #1a2a50 0%, #152040 100%);
+  --bg-sidebar: #12141f;
+  --bg-input: #1e2133;
+  --bg-hover: rgba(255, 255, 255, 0.06);
+  --bg-selected: rgba(0, 86, 179, 0.22);
+  --text-primary: #e5e7eb;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+  --border-color: #2a2d40;
+  --border-color-strong: #3a3d55;
+}
+
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  background: var(--bg-body);
+  color: var(--text-primary);
+}
+
+/* Scrollbars */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.35); }
+[data-theme="dark"] ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); }
+
+/* Utility */
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.items-center { align-items: center; }
+.gap-2 { gap: 8px; }
+.text-sm { font-size: 13px; }
+.text-xs { font-size: 11px; }
+.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
