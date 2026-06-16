@@ -1,45 +1,25 @@
 import { create } from 'zustand';
 import type { Notification, Theme, User } from '../types';
+import { db, hashPassword, type StoredUser } from './dbService';
 
-/* ─── Security helpers ───
- * In a real system these would use bcrypt/argon2 server-side.
- * Here we use a simple deterministic hash to avoid storing plaintext.
- * IMPORTANT: credentials never leave the store; there is no network call.
- */
+/* ─── Security helpers ─── */
 function djb2Hash(str: string): string {
   let h = 5381;
-  for (let i = 0; i < str.length; i++) {
-    h = (h * 33) ^ str.charCodeAt(i);
-    h = h >>> 0; // force unsigned 32-bit
-  }
+  for (let i = 0; i < str.length; i++) { h = (h * 33) ^ str.charCodeAt(i); h = h >>> 0; }
   return h.toString(16).padStart(8, '0');
 }
 
-function hashPassword(password: string, salt: string): string {
-  // salt + multiple rounds to slow brute force in browser context
-  let h = salt + password;
-  for (let i = 0; i < 1000; i++) h = djb2Hash(h + salt);
-  return h;
+// Input sanitization
+function sanitize(input: string): string {
+  return input.trim().slice(0, 64).replace(/[<>"'`]/g, '');
 }
 
-// Salts and hashed passwords — never store raw passwords
-const USER_DB: Record<string, {
-  salt: string;
-  hash: string;
-  displayName: string;
-  isAdmin: boolean;
-  groups: string[];
-}> = (() => {
-  const makeEntry = (pw: string, displayName: string, isAdmin: boolean, groups: string[]) => {
-    const salt = djb2Hash(displayName + 'lgmos2025');
-    return { salt, hash: hashPassword(pw, salt), displayName, isAdmin, groups };
-  };
-  return {
-    admin:   makeEntry('admin',   'Administrador', true,  ['administrators', 'users']),
-    lgm:     makeEntry('lgm',     'LGM User',      false, ['users']),
-    invitado: makeEntry('guest123','Invitado',      false, ['guests']),
-  };
-})();
+// Validate password strength
+function validatePassword(pw: string): string | null {
+  if (pw.length < 4) return 'La contraseña debe tener al menos 4 caracteres';
+  if (pw.length > 64) return 'La contraseña es demasiado larga';
+  return null;
+}
 
 // Login rate-limiting: max 5 attempts per 30 seconds per username
 const _attempts: Map<string, { count: number; firstAt: number }> = new Map();
@@ -65,9 +45,10 @@ function recordAttempt(username: string, success: boolean) {
   }
 }
 
-// Input sanitization
-function sanitize(input: string): string {
-  return input.trim().slice(0, 64).replace(/[<>"'`]/g, '');
+/** Check if system needs initial setup */
+export function needsSetup(): boolean {
+  const config = db.getConfig();
+  return !config.adminCreated;
 }
 
 interface SystemStore {
@@ -78,10 +59,18 @@ interface SystemStore {
   showLaunchPad: boolean;
   showNotifications: boolean;
   loginError: string;
+  setupStep: 'welcome' | 'admin' | 'complete';
 
+  /* ─── Setup ─── */
+  setSetupStep: (step: 'welcome' | 'admin' | 'complete') => void;
+  createAdmin: (username: string, password: string, confirmPassword: string, email: string) => string | null;
+
+  /* ─── Auth ─── */
   login: (username: string, password: string) => boolean;
   logout: () => void;
   toggleTheme: () => void;
+
+  /* ─── Notifications ─── */
   addNotification: (title: string, message: string, type?: Notification['type']) => void;
   markAllRead: () => void;
   clearNotifications: () => void;
@@ -101,14 +90,12 @@ function loadSession(): { isLoggedIn: boolean; user: User | null } {
         return { isLoggedIn: data.isLoggedIn, user: data.user as User };
       }
     }
-  } catch { /* corrupted data, reset session */ }
+  } catch { /* corrupted */ }
   return { isLoggedIn: false, user: null };
 }
 
 function saveSession(user: User) {
-  try {
-    localStorage.setItem('lgmos-session', JSON.stringify({ isLoggedIn: true, user }));
-  } catch { /* quota exceeded, silently ignore */ }
+  try { localStorage.setItem('lgmos-session', JSON.stringify({ isLoggedIn: true, user })); } catch { /* ignore */ }
 }
 
 function clearSession() {
@@ -120,12 +107,87 @@ const savedSession = loadSession();
 export const useSystemStore = create<SystemStore>((set, get) => ({
   isLoggedIn: savedSession.isLoggedIn,
   user: savedSession.user,
-  theme: (localStorage.getItem('lgmos-theme') as Theme) || 'light',
+  theme: (localStorage.getItem('lgmos-theme') as Theme) || 'dark',
   notifications: [],
   showLaunchPad: false,
   showNotifications: false,
   loginError: '',
+  setupStep: 'welcome',
 
+  /* ─── Setup: create admin account ─── */
+  setSetupStep: (step) => set({ setupStep: step }),
+
+  createAdmin: (rawUsername, rawPassword, confirmPassword, email) => {
+    const username = sanitize(rawUsername).toLowerCase();
+    const password = sanitize(rawPassword);
+
+    if (!username || !password) return 'Usuario y contraseña requeridos';
+    if (username.length < 3) return 'El usuario debe tener al menos 3 caracteres';
+    if (password !== confirmPassword) return 'Las contraseñas no coinciden';
+
+    const pwErr = validatePassword(password);
+    if (pwErr) return pwErr;
+
+    // Check if user already exists
+    if (db.findUserByUsername(username)) return 'El usuario ya existe';
+
+    const salt = djb2Hash(username + 'lgmos2025');
+    const hashedPw = hashPassword(password, salt);
+
+    const newUser: StoredUser = {
+      id: 'user-admin',
+      username,
+      displayName: 'Administrador',
+      password: hashedPw,
+      salt,
+      email: email || '',
+      isAdmin: true,
+      status: 'active',
+      groups: ['administrators', 'users'],
+      createdAt: new Date().toISOString(),
+      description: 'Cuenta de administrador creada durante la instalación',
+      quota: 0,
+      usedQuota: 0,
+      canSMB: true,
+      canFTP: true,
+      canSFTP: true,
+      canSSH: true,
+    };
+
+    db.addUser(newUser);
+
+    // Add admin to built-in groups
+    const groups = db.getGroups();
+    const admins = groups.find(g => g.id === 'administrators');
+    const usersGroup = groups.find(g => g.id === 'users');
+    if (admins && !admins.members.includes('user-admin')) admins.members.push('user-admin');
+    if (usersGroup && !usersGroup.members.includes('user-admin')) usersGroup.members.push('user-admin');
+    db.setGroups(groups);
+
+    // Mark system as initialized
+    db.setConfig({ adminCreated: true, initialized: true });
+
+    // Auto-login
+    const user: User = { username, displayName: 'Administrador', isAdmin: true };
+    saveSession(user);
+    set({ isLoggedIn: true, user, loginError: '', setupStep: 'complete' });
+
+    db.addLog({
+      id: 'log-setup-' + Date.now(),
+      timestamp: new Date().toISOString(),
+      level: 'info',
+      service: 'system',
+      message: `Instalación completada. Administrador "${username}" creado.`,
+    });
+
+    setTimeout(() => {
+      get().addNotification('Bienvenido a LGM OS', 'Instalación completada. El sistema está listo.', 'success');
+    }, 500);
+
+    return null;
+  },
+
+  /* ─── Login ─── */
   login: (rawUsername, rawPassword) => {
     const username = sanitize(rawUsername).toLowerCase();
     const password = sanitize(rawPassword);
@@ -141,25 +203,29 @@ export const useSystemStore = create<SystemStore>((set, get) => ({
       return false;
     }
 
-    const record = USER_DB[username];
-    const valid = record && hashPassword(password, record.salt) === record.hash;
+    const storedUser = db.findUserByUsername(username);
+    const valid = storedUser && storedUser.password === hashPassword(password, storedUser.salt);
     recordAttempt(username, valid);
 
-    if (valid) {
-      const user: User = { username, displayName: record.displayName, isAdmin: record.isAdmin };
+    if (valid && storedUser) {
+      if (storedUser.status === 'locked') {
+        set({ loginError: 'Cuenta bloqueada. Contacta al administrador.' });
+        return false;
+      }
+      if (storedUser.status === 'inactive') {
+        set({ loginError: 'Cuenta desactivada.' });
+        return false;
+      }
+
+      const user: User = { username: storedUser.username, displayName: storedUser.displayName, isAdmin: storedUser.isAdmin };
       saveSession(user);
-      set({
-        isLoggedIn: true,
-        loginError: '',
-        user,
-        showLaunchPad: false,
-      });
+
+      // Update last login
+      db.updateUser(storedUser.id, { lastLogin: new Date().toISOString() });
+
+      set({ isLoggedIn: true, loginError: '', user, showLaunchPad: false });
       setTimeout(() => {
-        get().addNotification(
-          'Bienvenido a LGM OS',
-          `Sesión iniciada como ${record.displayName}`,
-          'success'
-        );
+        get().addNotification('Bienvenido a LGM OS', `Sesión iniciada como ${storedUser.displayName}`, 'success');
       }, 800);
       return true;
     }
@@ -185,8 +251,7 @@ export const useSystemStore = create<SystemStore>((set, get) => ({
     }),
 
   addNotification: (title, message, type = 'info') => {
-    // Sanitize notification content
-    const safeTitle   = String(title).slice(0, 80).replace(/[<>]/g, '');
+    const safeTitle = String(title).slice(0, 80).replace(/[<>]/g, '');
     const safeMessage = String(message).slice(0, 200).replace(/[<>]/g, '');
     const notif: Notification = {
       id: `notif-${notifId++}`,
@@ -214,6 +279,3 @@ export const useSystemStore = create<SystemStore>((set, get) => ({
   toggleNotifications: () =>
     set((state) => ({ showNotifications: !state.showNotifications, showLaunchPad: false })),
 }));
-
-
-

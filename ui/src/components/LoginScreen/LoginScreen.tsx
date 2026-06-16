@@ -1,12 +1,15 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Eye, EyeOff, Server } from 'lucide-react';
 import { useSystemStore } from '../../store/systemStore';
+import { db } from '../../store/dbService';
 import './LoginScreen.css';
 
-const QUICK_USERS = [
-  { username: 'admin', label: 'Administrador', avatar: 'A', color: '#2d7bff' },
-  { username: 'lgm',   label: 'LGM User',      avatar: 'L', color: '#00b87c' },
-];
+function userColor(username: string): string {
+  const colors = ['#2d7bff', '#00b87c', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#0891b2', '#84cc16', '#f97316', '#6366f1'];
+  let h = 0;
+  for (let i = 0; i < username.length; i++) h = (h * 31 + username.charCodeAt(i)) | 0;
+  return colors[Math.abs(h) % colors.length];
+}
 
 export function LoginScreen() {
   const { login, loginError } = useSystemStore();
@@ -16,7 +19,16 @@ export function LoginScreen() {
   const [loading, setLoading]   = useState(false);
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
 
-  const handleQuickUser = (u: typeof QUICK_USERS[0]) => {
+  const quickUsers = useMemo(() => {
+    return db.getUsers().map(u => ({
+      username: u.username,
+      label: u.displayName,
+      avatar: (u.displayName || u.username).charAt(0).toUpperCase(),
+      color: userColor(u.username),
+    }));
+  }, []);
+
+  const handleQuickUser = (u: typeof quickUsers[0]) => {
     setSelectedUser(u.username);
     setUsername(u.username);
   };
@@ -61,7 +73,12 @@ export function LoginScreen() {
 
         {/* Quick user select */}
         <div className="login__users">
-          {QUICK_USERS.map((u) => (
+          {quickUsers.length === 0 ? (
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', textAlign: 'center', padding: '0.5rem 0' }}>
+              No hay usuarios configurados. Contacta al administrador.
+            </p>
+          ) : (
+            quickUsers.map((u) => (
             <button
               key={u.username}
               className={`login__user-btn ${selectedUser === u.username ? 'login__user-btn--active' : ''}`}
@@ -73,7 +90,8 @@ export function LoginScreen() {
               </span>
               <span className="login__user-label">{u.label}</span>
             </button>
-          ))}
+            ))
+          )}
         </div>
 
         <form onSubmit={handleSubmit} className="login__form">
@@ -125,9 +143,6 @@ export function LoginScreen() {
           </button>
         </form>
 
-        <p className="login__hint">
-          Demo: <strong>admin / admin</strong> · <strong>lgm / lgm</strong>
-        </p>
       </div>
 
       <div className="login__footer">
