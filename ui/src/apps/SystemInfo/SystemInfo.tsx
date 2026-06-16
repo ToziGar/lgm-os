@@ -238,19 +238,6 @@ export function SystemInfo() {
 }
 
 
-  useEffect(() => {
-    const id = setInterval(refresh, 3000);
-    return () => clearInterval(id);
-  }, []);
-
-  const processes = [
-    { name: 'nginx', cpu: randBetween(0, 5), mem: randBetween(50, 150) },
-    { name: 'mariadb', cpu: randBetween(1, 8), mem: randBetween(200, 600) },
-    { name: 'lgm-ui', cpu: randBetween(2, 12), mem: randBetween(300, 800) },
-    { name: 'systemd', cpu: 0, mem: randBetween(10, 30) },
-    { name: 'sshd', cpu: 0, mem: randBetween(5, 20) },
-  ];
-
   return (
     <div className="sysinfo">
       {/* Header */}
