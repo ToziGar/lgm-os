@@ -8,32 +8,32 @@ import './Desktop.css';
 /* ─── Wallpaper definitions ─── */
 const WALLPAPERS = [
   {
-    name: 'DSM Signature',
+    name: 'LGM Azul',
     css: 'wp--dsm',
     preview: 'linear-gradient(135deg,#0a2a6e 0%,#1a4fcc 45%,#00c8ff 100%)',
   },
   {
-    name: 'Monterey',
+    name: 'Atardecer',
     css: 'wp--monterey',
     preview: 'linear-gradient(135deg,#e8523a 0%,#c03a8c 50%,#6d28d9 100%)',
   },
   {
-    name: 'Sonoma',
+    name: 'Amanecer',
     css: 'wp--sonoma',
     preview: 'linear-gradient(135deg,#f97316 0%,#ec4899 45%,#8b5cf6 100%)',
   },
   {
-    name: 'Sequoia',
+    name: 'Bosque',
     css: 'wp--sequoia',
     preview: 'linear-gradient(135deg,#064e3b 0%,#065f46 35%,#0e7490 75%,#1e3a5f 100%)',
   },
   {
-    name: 'Ventura',
+    name: 'Medianoche',
     css: 'wp--ventura',
     preview: 'linear-gradient(135deg,#1e1b4b 0%,#312e81 30%,#4f46e5 60%,#7c3aed 100%)',
   },
   {
-    name: 'DSM Dark',
+    name: 'LGM Oscuro',
     css: 'wp--dsm-dark',
     preview: 'linear-gradient(135deg,#020a18 0%,#0a1e3d 45%,#0d2d5e 100%)',
   },
@@ -102,9 +102,9 @@ export function Desktop() {
       <div className="desktop__orb desktop__orb--3"/>
       <div className="desktop__orb desktop__orb--4"/>
 
-      {/* Desktop icons */}
+      {/* Desktop icons (skip control-panel, it's accessible from LaunchPad) */}
       <div className="desktop__icons">
-        {APPS.map((app) => (
+        {APPS.filter(app => app.id !== 'control-panel').map((app) => (
           <button
             key={app.id}
             className="desktop__icon"
