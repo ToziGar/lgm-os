@@ -12,6 +12,7 @@ import { PackageCenter } from './apps/PackageCenter/PackageCenter';
 import { Terminal } from './apps/Terminal/Terminal';
 import { TextEditor } from './apps/TextEditor/TextEditor';
 import { SystemInfo } from './apps/SystemInfo/SystemInfo';
+import { Calculator } from './apps/Calculator/Calculator';
 
 function renderApp(appId: string) {
   switch (appId) {
@@ -21,6 +22,7 @@ function renderApp(appId: string) {
     case 'terminal':       return <Terminal />;
     case 'text-editor':    return <TextEditor />;
     case 'system-info':    return <SystemInfo />;
+    case 'calculator':     return <Calculator />;
     default: return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-secondary)' }}>
         Aplicación no encontrada
