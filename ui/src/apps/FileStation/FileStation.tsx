@@ -441,7 +441,9 @@ export function FileStation() {
   );
 }
 
-const FS: Record<string, FileItem[]> = {
+// Legacy FS data removed - superseded by INITIAL_FS above
+
+const _FS_UNUSED: Record<string, { name: string; type: string }[]> = {
   '/': [
     { name: 'home', type: 'folder' },
     { name: 'Documentos', type: 'folder' },
