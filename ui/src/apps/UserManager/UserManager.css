@@ -352,7 +352,7 @@
 .um__matrix-row:last-child { border-bottom: none; }
 .um__matrix-row:hover { background: var(--bg-hover); }
 .um__matrix-group { display: flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 500; }
-.um__matrix-cell { }
+.um__matrix-cell { vertical-align: middle; }
 .um__perm-select {
   padding: 4px 6px;
   border: 1px solid var(--border-color);

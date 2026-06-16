@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Plus, Trash2, Server, Key, Copy, RefreshCw, CheckCircle2, AlertCircle, Terminal, Download } from 'lucide-react';
+import { Plus, Trash2, Server, Key, Copy, RefreshCw, CheckCircle2, AlertCircle, Terminal } from 'lucide-react';
 import { useSystemStore } from '../../store/systemStore';
 import './SSHManager.css';
 
@@ -29,15 +29,15 @@ interface SSHKey {
 }
 
 const INITIAL_CONNS: SSHConnection[] = [
-  { id: '1', name: 'Servidor Principal',  host: '192.168.1.100', port: 22, user: 'admin', authType: 'key',      keyName: 'id_ed25519', group: 'Local', lastConnected: '16/06/2025 14:32', status: 'idle' },
-  { id: '2', name: 'Servidor Backup',     host: '192.168.1.101', port: 22, user: 'admin', authType: 'key',      keyName: 'id_ed25519', group: 'Local', lastConnected: '10/06/2025 08:12', status: 'idle' },
-  { id: '3', name: 'VPS Producción',      host: '45.76.10.22',   port: 22, user: 'ubuntu', authType: 'key',     keyName: 'vps_key',    group: 'Remoto', lastConnected: '14/06/2025 19:45', status: 'idle' },
-  { id: '4', name: 'Pi-hole',             host: '192.168.1.50',  port: 22, user: 'pi',     authType: 'password',                        group: 'Local', status: 'idle' },
+  { id: '1', name: 'LGM NAS (local)',  host: '192.168.1.100', port: 22, user: 'admin', authType: 'key',      keyName: 'id_ed25519', group: 'Local', lastConnected: '16/06/2025 14:32', status: 'idle' },
+  { id: '2', name: 'Servidor Backup',  host: '192.168.1.101', port: 22, user: 'admin', authType: 'key',      keyName: 'id_ed25519', group: 'Local', lastConnected: '10/06/2025 08:12', status: 'idle' },
+  { id: '3', name: 'VPS Producción',   host: '45.76.10.22',   port: 22, user: 'ubuntu', authType: 'key',     keyName: 'vps_key',    group: 'Remoto', lastConnected: '14/06/2025 19:45', status: 'idle' },
+  { id: '4', name: 'Router casa',      host: '192.168.1.1',   port: 22, user: 'root',   authType: 'password',                        group: 'Local',  status: 'idle' },
 ];
 
 const INITIAL_KEYS: SSHKey[] = [
-  { id: '1', name: 'id_ed25519', type: 'ED25519', fingerprint: 'SHA256:AbCdEfGhIjKlMn1234567890', comment: 'admin@lgmos', createdAt: '01/01/2025', publicKey: 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDxyz... admin@lgmos' },
-  { id: '2', name: 'id_rsa',     type: 'RSA',     bits: 4096,  fingerprint: 'SHA256:XyZaBcDeFg0987654321',    comment: 'admin@lgmos', createdAt: '15/03/2025', publicKey: 'ssh-rsa AAAAB3NzaC1yc2EAAA... admin@lgmos' },
+  { id: '1', name: 'id_ed25519', type: 'ED25519', fingerprint: 'SHA256:AbCdEfGhIjKlMn1234567890', comment: 'admin@lgm-nas-01', createdAt: '01/01/2025', publicKey: 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDxyz... admin@lgm-nas-01' },
+  { id: '2', name: 'id_rsa',     type: 'RSA',     bits: 4096,  fingerprint: 'SHA256:XyZaBcDeFg0987654321',    comment: 'admin@lgm-nas-01', createdAt: '15/03/2025', publicKey: 'ssh-rsa AAAAB3NzaC1yc2EAAA... admin@lgm-nas-01' },
   { id: '3', name: 'vps_key',    type: 'ED25519', fingerprint: 'SHA256:QwErTyUiOp1122334455',       comment: 'vps-prod',     createdAt: '20/04/2025', publicKey: 'ssh-ed25519 AAAAC3NzaC1lZDI1... vps-prod' },
 ];
 
@@ -48,9 +48,10 @@ interface TLine { type: 'input' | 'output' | 'error' | 'system'; text: string; }
 function SSHTerminalPanel({ conn, onClose }: { conn: SSHConnection; onClose: () => void }) {
   const [lines, setLines] = useState<TLine[]>([
     { type: 'system', text: `Conectando a ${conn.user}@${conn.host}:${conn.port}…` },
-    { type: 'system', text: `Verificando clave de host… ED25519 SHA256:AbCdEfGhIj` },
-    { type: 'output', text: `Bienvenido a LGM OS (Debian GNU/Linux 12)` },
-    { type: 'output', text: `Último acceso: lun 16 jun 14:32:05 2025 desde 192.168.1.200` },
+    { type: 'system', text: `Autenticando con clave ED25519 SHA256:AbCdEfGhIj…` },
+    { type: 'output', text: `Bienvenido a LGM OS (Debian GNU/Linux 12 bookworm)` },
+    { type: 'output', text: `Último inicio de sesión: ${new Date().toLocaleString('es-ES')} desde 192.168.1.200` },
+    { type: 'output', text: `Sistema: ${conn.host} | Uptime: 3d 7h 12m` },
     { type: 'output', text: '' },
   ]);
   const [input, setInput] = useState('');
@@ -65,43 +66,130 @@ function SSHTerminalPanel({ conn, onClose }: { conn: SSHConnection; onClose: () 
   const prompt = `${conn.user}@${conn.host.split('.').slice(-1)[0]}:${cwd}$ `;
 
   const runCmd = useCallback((raw: string): TLine[] => {
-    const [cmd, ...args] = raw.trim().split(/\s+/);
+    const parts = raw.trim().split(/\s+/);
+    const [cmd, ...args] = parts;
+    const out  = (t: string): TLine => ({ type: 'output',  text: t });
+    const err  = (t: string): TLine => ({ type: 'error',   text: t });
+    const sys  = (t: string): TLine => ({ type: 'system',  text: t });
     switch (cmd) {
       case '': return [];
       case 'help': return [
-        { type: 'output', text: 'ls, cd, pwd, cat, echo, whoami, uname, uptime, df, free, ps, top, exit' }
+        out('Comandos: ls, cd, pwd, cat, echo, whoami, uname, uptime, date, df, free, ps, top,'),
+        out('          ip, ss, ping, systemctl, docker, wg, zpool, zfs, env, history, clear, exit'),
       ];
-      case 'ls': return [{ type: 'output', text: (
-        cwd === '~' ? 'Documentos  Descargas  Imágenes  .bashrc  .ssh  lgm-os'
-        : 'authorized_keys  config  id_ed25519  id_ed25519.pub  known_hosts'
-      )}];
+      case 'ls': {
+        const long = args.some(a => a.includes('l'));
+        const paths: Record<string, string[]> = {
+          '~': ['Documentos  Descargas  Imágenes  .bashrc  .ssh  lgm-os  README.md'],
+          '~/.ssh': ['authorized_keys  config  id_ed25519  id_ed25519.pub  known_hosts'],
+        };
+        const list = paths[cwd] ?? ['(empty)'];
+        if (long) return [out('total 48'), ...list[0].split('  ').filter(Boolean).map(f =>
+          out(`${f.startsWith('.') || f.includes('.') ? '-rw-r--r--' : 'drwxr-xr-x'}  1 ${conn.user} ${conn.user}  4096 Jun 16 14:32 ${f}`))];
+        return list.map(out);
+      }
       case 'cd': {
         const t = args[0] || '~';
-        setCwd(t === '..' ? (cwd.split('/').slice(0,-1).join('/') || '~') : t === '~' ? '~' : `${cwd}/${t}`);
-        return [];
+        const next = t === '~' ? '~' : t === '..' ? (cwd.split('/').slice(0,-1).join('/') || '~') : t.startsWith('/') ? t : `${cwd}/${t}`;
+        setCwd(next); return [];
       }
-      case 'pwd': return [{ type: 'output', text: cwd.replace('~', `/home/${conn.user}`) }];
-      case 'whoami': return [{ type: 'output', text: conn.user }];
-      case 'uname': return [{ type: 'output', text: args.includes('-a') ? `Linux ${conn.host.split('.').join('')}-nas 6.1.0-lgm-amd64 #1 SMP x86_64 GNU/Linux` : 'Linux' }];
-      case 'uptime': return [{ type: 'output', text: ' 14:32:10 up 3 days, 7:12,  1 user,  load average: 0.12, 0.18, 0.15' }];
+      case 'pwd': return [out(cwd.replace('~', `/home/${conn.user}`))];
+      case 'whoami': return [out(conn.user)];
+      case 'id': return [out(`uid=1000(${conn.user}) gid=1000(${conn.user}) groups=1000(${conn.user}),27(sudo)`)];
+      case 'hostname': return [out(args.includes('-f') ? `${conn.host}` : conn.host.split('.')[0] ?? conn.host)];
+      case 'uname': return [out(args.includes('-a') ? `Linux ${conn.host} 6.1.0-lgm-amd64 #1 SMP x86_64 GNU/Linux` : 'Linux')];
+      case 'date': return [out(new Date().toString())];
+      case 'uptime': return [out(` ${new Date().toLocaleTimeString('es-ES')} up 3 days,  7:12,  1 user,  load average: 0.12, 0.18, 0.15`)];
+      case 'env': return [out(`HOME=/home/${conn.user}`), out(`USER=${conn.user}`), out(`SHELL=/bin/bash`), out(`PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin`)];
       case 'df': return [
-        { type: 'output', text: 'Filesystem      1K-blocks      Used Available Use% Mounted on' },
-        { type: 'output', text: '/dev/sda1       976762584 387145320 589617264  40% /' },
+        out('Filesystem      1K-blocks       Used  Available Use% Mounted on'),
+        out('/dev/sda1       976762584  387145320  589617264  40% /'),
+        out('/dev/sdb1      3999999488 1595555840 2404443648  40% /volume1'),
+        out('tmpfs             8192000          0    8192000   0% /dev/shm'),
       ];
       case 'free': return [
-        { type: 'output', text: '               total      used       free' },
-        { type: 'output', text: 'Mem:        16384000   6214400   10169600' },
+        out('               total        used        free      shared  buff/cache   available'),
+        out('Mem:          16776704     6448128     8192000      145408     2048000    10082304'),
+        out('Swap:          2097152           0     2097152'),
       ];
       case 'ps': return [
-        { type: 'output', text: '  PID TTY          TIME CMD' },
-        { type: 'output', text: ' 1024 ?        00:00:05 nginx' },
-        { type: 'output', text: ' 1128 ?        00:00:18 mariadb' },
-        { type: 'output', text: ' 2048 pts/0    00:00:00 bash' },
+        out('  PID TTY          TIME CMD'),
+        out(' 1024 ?        00:00:05 nginx'),
+        out(' 1128 ?        00:00:18 mariadbd'),
+        out(' 1200 ?        00:00:08 smbd'),
+        out(' 2048 pts/0    00:00:00 bash'),
+        out(` ${Math.floor(Math.random()*9000+1000)} pts/0    00:00:00 ps`),
       ];
-      case 'echo': return [{ type: 'output', text: args.join(' ') }];
+      case 'top': return [
+        out(`top - ${new Date().toLocaleTimeString('es-ES')} up 3 days, 7:12, 1 user, load average: 0.12, 0.18`),
+        out('Tasks:  98 total,   1 running,  97 sleeping,   0 stopped,   0 zombie'),
+        out('%Cpu(s):  2.4 us,  0.8 sy,  0.0 ni, 96.2 id,  0.4 wa'),
+        out('MiB Mem :  16384.0 total,  7936.0 free,  6348.0 used,  2100.0 buff/cache'),
+      ];
+      case 'ip': return args[0] === 'a' || args[0] === 'addr' ? [
+        out('1: lo: <LOOPBACK,UP> mtu 65536'),
+        out('    inet 127.0.0.1/8 scope host lo'),
+        out(`2: eth0: <BROADCAST,MULTICAST,UP> mtu 1500`),
+        out(`    inet ${conn.host}/24 brd 192.168.1.255 scope global eth0`),
+      ] : [out(`ip: uso: ip {addr|route}`)];
+      case 'ss': case 'netstat': return [
+        out('Netid  State   Recv-Q  Send-Q  Local Address:Port'),
+        out('tcp    LISTEN  0       128     0.0.0.0:22            sshd'),
+        out('tcp    LISTEN  0       128     0.0.0.0:80            nginx'),
+        out('tcp    LISTEN  0       80      0.0.0.0:3306          mariadbd'),
+        out('tcp    LISTEN  0       128     0.0.0.0:445           smbd'),
+      ];
+      case 'ping': {
+        if (!args[0]) return [err('ping: usage error: Destination address required')];
+        return [
+          out(`PING ${args[0]} (${args[0]}) 56(84) bytes of data.`),
+          out(`64 bytes from ${args[0]}: icmp_seq=1 ttl=64 time=0.${Math.floor(Math.random()*9+1)} ms`),
+          out(`64 bytes from ${args[0]}: icmp_seq=2 ttl=64 time=0.${Math.floor(Math.random()*9+1)} ms`),
+          out(`3 packets transmitted, 3 received, 0% packet loss`),
+        ];
+      }
+      case 'systemctl': {
+        const sub = args[0]; const svc = args[1];
+        if (sub === 'status') return [
+          sys(`● ${svc ?? 'unknown'}.service`),
+          out(`   Active: active (running) since Mon 2025-01-01 06:00:00; 3 days ago`),
+          out(`   Main PID: ${Math.floor(Math.random()*2000+500)}`),
+        ];
+        if (['start','stop','restart','reload'].includes(sub ?? '')) return [out('')];
+        return [out(`systemctl: uso: systemctl {status|start|stop|restart} <unit>`)];
+      }
+      case 'docker': {
+        if (args[0] === 'ps') return [
+          out('CONTAINER ID   IMAGE          STATUS       PORTS                   NAMES'),
+          out('a1b2c3d4e5f6   nginx:latest   Up 3 days    0.0.0.0:8080->80/tcp    nginx'),
+          out('b2c3d4e5f6a7   mariadb:11     Up 3 days    0.0.0.0:3306->3306/tcp  mariadb'),
+        ];
+        return [out('docker: uso: docker {ps|images|stats|logs}')];
+      }
+      case 'wg': return [
+        sys('interface: wg0'),
+        out('  public key: AbCdEfGhIjKlMnOpQrStUvWxYz0123456789='),
+        out('  listening port: 51820'),
+        out(''),
+        sys('peer: def456ABC...'),
+        out('  latest handshake: 2 minutes, 14 seconds ago'),
+      ];
+      case 'zpool': return args[0] === 'list' ? [
+        out('NAME    SIZE   ALLOC   FREE  HEALTH'),
+        out('tank    14.6T   4.7T   9.8T  ONLINE'),
+        out('rpool    0.9T   0.1T   0.8T  ONLINE'),
+      ] : [sys('pool: tank'), out(' state: ONLINE'), out('errors: No known data errors')];
+      case 'zfs': return [
+        out('NAME                   USED  AVAIL  MOUNTPOINT'),
+        out('tank                   4.7T   9.8T  /tank'),
+        out('tank/data              3.2T   9.8T  /tank/data'),
+        out('rpool                  0.1T   0.8T  /'),
+      ];
+      case 'echo': return [out(args.join(' '))];
+      case 'cat': return [err(`cat: ${args[0] ?? ''}: No such file or directory`)];
       case 'clear': return null as any;
       case 'exit': onClose(); return [];
-      default: return [{ type: 'error', text: `bash: ${cmd}: command not found` }];
+      default: return [err(`bash: ${cmd}: command not found`)];
     }
   }, [cwd, conn, onClose]);
 
@@ -257,7 +345,10 @@ export function SSHManager() {
                 <button className="ssh__icon-btn" onClick={() => copyPubKey(key)} title="Copiar clave pública"><Copy size={12}/></button>
               </div>
             ))}
-            <button className="ssh__gen-btn"><Plus size={13}/> Generar nueva clave</button>
+            <button className="ssh__gen-btn"
+              onClick={() => addNotification('Generar clave SSH', 'Ejecuta en terminal: ssh-keygen -t ed25519 -C "admin@lgm-nas-01"', 'info')}>
+              <Plus size={13}/> Generar nueva clave
+            </button>
           </div>
         )}
       </div>

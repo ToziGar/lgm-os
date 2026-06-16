@@ -72,7 +72,7 @@
   --shadow-dropdown: 0 4px 16px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.08);
 
   /* Taskbar */
-  --taskbar-height: 48px;
+  --taskbar-height: 58px;
   --taskbar-bg: rgba(20, 22, 34, 0.97);
 
   /* Transitions */
@@ -86,23 +86,25 @@
 
 /* Dark theme */
 [data-theme="dark"] {
-  --bg-body: #0d0f18;
-  --bg-window: #1b1e2c;
-  --bg-window-title: #151721;
-  --bg-window-title-focused: linear-gradient(180deg, #182344 0%, #131d3a 100%);
-  --bg-sidebar: #131523;
-  --bg-sidebar-hover: #1d2035;
+  --bg-body: #0a0c14;
+  --bg-window: #181b28;
+  --bg-window-title: #131623;
+  --bg-window-title-focused: linear-gradient(180deg, #1a2540 0%, #131d38 100%);
+  --bg-sidebar: #11141f;
+  --bg-sidebar-hover: #1b1e2e;
   --bg-sidebar-active: rgba(45, 123, 255, 0.2);
-  --bg-input: #1d2035;
+  --bg-input: #1c2030;
   --bg-hover: rgba(255, 255, 255, 0.05);
   --bg-selected: rgba(45, 123, 255, 0.18);
   --bg-selected-strong: rgba(45, 123, 255, 0.28);
   --bg-stripe: rgba(255, 255, 255, 0.02);
-  --text-primary: #dde1eb;
+  --text-primary: #dde2ec;
   --text-secondary: #8896a9;
   --text-muted: #525d6e;
-  --border-color: #242738;
-  --border-color-strong: #363a50;
+  --border-color: #222538;
+  --border-color-strong: #323652;
+  --shadow-window: 0 20px 60px rgba(0,0,0,0.45), 0 4px 20px rgba(0,0,0,0.2);
+  --shadow-window-focused: 0 28px 80px rgba(0,0,0,0.55), 0 8px 32px rgba(0,0,0,0.3);
 }
 
 html, body, #root {

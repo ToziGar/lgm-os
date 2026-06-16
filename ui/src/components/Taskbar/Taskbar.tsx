@@ -1,10 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   LayoutGrid, Bell, Sun, Moon, LogOut, User, Wifi, HardDrive,
 } from 'lucide-react';
 import { useSystemStore } from '../../store/systemStore';
 import { useWindowStore } from '../../store/windowStore';
-import { APPS } from '../../apps/appRegistry';import { AppIconSVG } from '../AppIcon/AppIcon';import './Taskbar.css';
+import { useStorageStore } from '../../store/storageStore';
+import { APPS } from '../../apps/appRegistry';
+import { AppIconSVG } from '../AppIcon/AppIcon';
+import './Taskbar.css';
 
 function Clock() {
   const [time, setTime] = useState(new Date());
@@ -24,12 +27,19 @@ function Clock() {
 }
 
 function CpuIndicator() {
-  const [cpu, setCpu] = useState(Math.round(15 + Math.random() * 30));
+  const [cpu, setCpu] = useState(() => Math.round(15 + Math.random() * 20));
+  const prevRef = useRef(cpu);
   useEffect(() => {
-    const id = setInterval(() => setCpu(Math.round(8 + Math.random() * 55)), 3000);
+    const id = setInterval(() => {
+      // Smooth random walk: max ±8 per tick, clamp to 5-75
+      const delta = Math.round((Math.random() - 0.5) * 16);
+      const next  = Math.max(5, Math.min(75, prevRef.current + delta));
+      prevRef.current = next;
+      setCpu(next);
+    }, 3000);
     return () => clearInterval(id);
   }, []);
-  const color = cpu > 80 ? '#ef4444' : cpu > 60 ? '#f59e0b' : '#00b87c';
+  const color = cpu > 75 ? '#ef4444' : cpu > 55 ? '#f59e0b' : '#00b87c';
   return (
     <div className="taskbar__perf" title={`CPU: ${cpu}%`}>
       <span className="taskbar__perf-label">CPU</span>
@@ -45,7 +55,10 @@ export function Taskbar() {
   const { user, theme, notifications, toggleTheme, toggleLaunchPad, toggleNotifications, logout } =
     useSystemStore();
   const { windows, focusWindow, minimizeWindow, openWindow } = useWindowStore();
+  const { volumes } = useStorageStore();
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showStorage,  setShowStorage]  = useState(false);
+  const [showNetwork,  setShowNetwork]  = useState(false);
 
   const unread = notifications.filter((n) => !n.read).length;
 
@@ -94,7 +107,7 @@ export function Taskbar() {
                 {!['file-station','control-panel','package-center','terminal','text-editor',
                     'system-info','calculator','network-services','ssh-manager',
                     'shared-folders','vpn','vpn-manager','task-manager','log-center',
-                    'user-manager','storage-manager'].includes(app.id) && (
+                    'user-manager','storage-manager','zfs-panel'].includes(app.id) && (
                   <span style={{ fontSize: 12 }}>{app.icon}</span>
                 )}
               </span>
@@ -114,13 +127,56 @@ export function Taskbar() {
 
         <div className="taskbar__tray-sep" />
 
-        <button className="taskbar__tray-btn" title="Red: Conectado">
+        <button className="taskbar__tray-btn" title="Red: 192.168.1.100" onClick={() => { setShowNetwork(v => !v); setShowStorage(false); setShowUserMenu(false); }}>
           <Wifi size={14} />
         </button>
 
-        <button className="taskbar__tray-btn" title="Almacenamiento">
-          <HardDrive size={14} />
-        </button>
+        {/* Network popup */}
+        {showNetwork && (
+          <>
+            <div className="taskbar__popup-overlay" onClick={() => setShowNetwork(false)}/>
+            <div className="taskbar__popup" style={{ right: 180 }}>
+              <div className="taskbar__popup-title"><Wifi size={13}/> Red</div>
+              {[['Interfaz','eth0'],['IP','192.168.1.100'],['Máscara','255.255.255.0'],['Gateway','192.168.1.1'],['DNS','8.8.8.8'],['Hostname','lgm-nas-01.local']].map(([k,v]) => (
+                <div key={k} className="taskbar__popup-row"><span>{k}</span><code>{v}</code></div>
+              ))}
+            </div>
+          </>
+        )}
+
+        <div style={{ position: 'relative' }}>
+          <button className="taskbar__tray-btn" title="Almacenamiento" onClick={() => { setShowStorage(v => !v); setShowNetwork(false); setShowUserMenu(false); }}>
+            <HardDrive size={14} />
+          </button>
+
+          {/* Storage popup */}
+          {showStorage && (
+            <>
+              <div className="taskbar__popup-overlay" onClick={() => setShowStorage(false)}/>
+              <div className="taskbar__popup">
+                <div className="taskbar__popup-title"><HardDrive size={13}/> Almacenamiento</div>
+                {volumes.map(v => {
+                  const pct = Math.round((v.usedGB / v.totalGB) * 100);
+                  return (
+                    <div key={v.id} className="taskbar__popup-vol">
+                      <div className="taskbar__popup-vol-header">
+                        <span>{v.name}</span>
+                        <span style={{ color: pct > 85 ? '#ef4444' : pct > 65 ? '#f59e0b' : 'var(--text-muted)' }}>{pct}%</span>
+                      </div>
+                      <div className="taskbar__popup-vol-bar">
+                        <div style={{ width: `${pct}%`, background: pct > 85 ? '#ef4444' : pct > 65 ? '#f59e0b' : '#3b82f6' }}/>
+                      </div>
+                      <div className="taskbar__popup-vol-meta">{v.usedGB} / {v.totalGB} GB · {v.raidType}</div>
+                    </div>
+                  );
+                })}
+                <button className="taskbar__popup-btn" onClick={() => { setShowStorage(false); openWindow('storage-manager','Almacenamiento','💿',1040,660,780,500); }}>
+                  → Abrir administrador
+                </button>
+              </div>
+            </>
+          )}
+        </div>
 
         <button
           className="taskbar__tray-btn"

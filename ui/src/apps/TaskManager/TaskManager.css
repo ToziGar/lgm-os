@@ -156,7 +156,7 @@
 .tm__th--status { justify-content: center; }
 .tm__th--cmd    { cursor: default; }
 
-.tm__tbody {}
+.tm__tbody { display: contents; }
 
 .tm__tr {
   display: grid;

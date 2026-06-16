@@ -1,53 +1,134 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
-  Network, HardDrive, Shield, Users, Info, Bell, Palette, Server,
-  Globe, Lock, RefreshCw, CheckCircle2, XCircle,
+  Info, Network, HardDrive, Database, Users, Shield,
+  Bell, Palette, Server, Terminal, Key, Activity,
+  FileText, Lock, Globe, ChevronRight,
 } from 'lucide-react';
 import { useSystemStore } from '../../store/systemStore';
-import { useWindowStore } from '../../store/windowStore';
-import { useUserStore } from '../../store/userStore';
 import { useStorageStore } from '../../store/storageStore';
+import { NetworkServices } from '../NetworkServices/NetworkServices';
+import { SSHManager }      from '../SSHManager/SSHManager';
+import { VPNManager }      from '../VPNManager/VPNManager';
+import { UserManager }     from '../UserManager/UserManager';
+import { StorageManager }  from '../StorageManager/StorageManager';
+import { ZFSPanel }        from '../ZFSPanel/ZFSPanel';
+import { LogCenter }       from '../LogCenter/LogCenter';
+import { TaskManager }     from '../TaskManager/TaskManager';
 import './ControlPanel.css';
 
+/* ─── Nav structure ─── */
 type Section =
-  | 'info'
-  | 'network'
-  | 'storage'
-  | 'users'
-  | 'security'
-  | 'appearance'
-  | 'notifications';
+  | 'info' | 'network' | 'shared-folders' | 'storage' | 'zfs'
+  | 'users' | 'ssh' | 'vpn' | 'logs' | 'tasks'
+  | 'security' | 'notifications' | 'appearance';
 
-interface NavItem {
-  id: Section;
-  label: string;
-  icon: React.ReactNode;
-}
+interface NavGroup { label: string; items: { id: Section; label: string; icon: React.ReactNode }[] }
 
-const NAV: NavItem[] = [
-  { id: 'info',          label: 'Información',      icon: <Info size={15} /> },
-  { id: 'network',       label: 'Red',              icon: <Network size={15} /> },
-  { id: 'storage',       label: 'Almacenamiento',   icon: <HardDrive size={15} /> },
-  { id: 'users',         label: 'Usuarios',         icon: <Users size={15} /> },
-  { id: 'security',      label: 'Seguridad',        icon: <Shield size={15} /> },
-  { id: 'notifications', label: 'Notificaciones',   icon: <Bell size={15} /> },
-  { id: 'appearance',    label: 'Apariencia',       icon: <Palette size={15} /> },
+const NAV_GROUPS: NavGroup[] = [
+  {
+    label: 'Sistema',
+    items: [
+      { id: 'info',   label: 'Información',     icon: <Info size={14}/> },
+      { id: 'tasks',  label: 'Procesos',         icon: <Activity size={14}/> },
+      { id: 'logs',   label: 'Registros',        icon: <FileText size={14}/> },
+    ],
+  },
+  {
+    label: 'Red y acceso',
+    items: [
+      { id: 'network',         label: 'Servicios de red',   icon: <Network size={14}/> },
+      { id: 'shared-folders',  label: 'Carpetas compartidas', icon: <Globe size={14}/> },
+      { id: 'ssh',             label: 'SSH',                icon: <Terminal size={14}/> },
+      { id: 'vpn',             label: 'VPN',                icon: <Lock size={14}/> },
+    ],
+  },
+  {
+    label: 'Almacenamiento',
+    items: [
+      { id: 'storage', label: 'Volúmenes y discos', icon: <HardDrive size={14}/> },
+      { id: 'zfs',     label: 'ZFS Pool',           icon: <Database size={14}/> },
+    ],
+  },
+  {
+    label: 'Usuarios',
+    items: [
+      { id: 'users', label: 'Usuarios y grupos', icon: <Users size={14}/> },
+    ],
+  },
+  {
+    label: 'Configuración',
+    items: [
+      { id: 'security',      label: 'Seguridad',       icon: <Shield size={14}/> },
+      { id: 'notifications', label: 'Notificaciones',  icon: <Bell size={14}/> },
+      { id: 'appearance',    label: 'Apariencia',      icon: <Palette size={14}/> },
+    ],
+  },
 ];
 
+/* ─── System info section ─── */
 function SysInfo() {
+  const { volumes, getDiskHealthSummary } = useStorageStore();
+  const { user } = useSystemStore();
+  const health = getDiskHealthSummary();
+  const total  = volumes.reduce((s, v) => s + v.totalGB, 0);
+  const used   = volumes.reduce((s, v) => s + v.usedGB,  0);
+
+  // Live uptime since page load
+  const [uptime, setUptime] = useState(0);
+  useEffect(() => {
+    // Simulate server was on for 3d7h + time since page loaded
+    const BASE_SECS = 3 * 86400 + 7 * 3600 + 12 * 60;
+    setUptime(BASE_SECS);
+    const t = setInterval(() => setUptime(s => s + 1), 1000);
+    return () => clearInterval(t);
+  }, []);
+
+  const fmtUptime = (s: number) => {
+    const d = Math.floor(s / 86400);
+    const h = Math.floor((s % 86400) / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    const ss = s % 60;
+    return `${d}d ${h}h ${m}m ${ss}s`;
+  };
+
   const rows = [
-    ['Sistema', 'LGM OS 1.0'],
-    ['Kernel', 'Linux 6.1.0-lgm-amd64'],
-    ['Arquitectura', 'x86_64'],
-    ['CPU', 'Intel Core i7-12700 @ 2.10GHz × 8'],
-    ['RAM Total', '16 GB'],
-    ['Disco', '1 TB SSD'],
-    ['Tiempo encendido', '3 días, 7 horas'],
-    ['Versión UI', '1.0.0 (React 18)'],
+    ['Sistema',           'LGM OS 1.0 (Debian GNU/Linux 12)'],
+    ['Kernel',            'Linux 6.1.0-lgm-amd64 #1 SMP x86_64'],
+    ['Arquitectura',      'x86_64 (64-bit)'],
+    ['CPU',               'Intel Core i7-12700 @ 2.10GHz × 8 cores'],
+    ['RAM total',         '16 GB DDR4-3200'],
+    ['RAM en uso',        '6.2 GB / 16 GB (39%)'],
+    ['Disco del sistema', 'Samsung 870 EVO 1TB (NVMe)'],
+    ['IP local',          '192.168.1.100'],
+    ['Hostname',          'lgm-nas-01.local'],
+    ['Usuario actual',    user?.displayName ?? 'admin'],
+    ['Tiempo encendido',  fmtUptime(uptime)],
+    ['Versión UI',        '1.0.0 (Vite 8 + React 18)'],
   ];
+
   return (
     <div className="cp__section">
-      <h3 className="cp__section-title">Información del Sistema</h3>
+      <h3 className="cp__section-title">Información del sistema</h3>
+
+      <div className="cp__info-health">
+        <div className="cp__info-health-item">
+          <span>Discos físicos</span>
+          <div className="cp__info-health-dots">
+            {health.healthy > 0 && <span className="cp__info-hdot cp__info-hdot--ok">{health.healthy} OK</span>}
+            {health.warning > 0 && <span className="cp__info-hdot cp__info-hdot--warn">{health.warning} aviso</span>}
+            {health.failing > 0 && <span className="cp__info-hdot cp__info-hdot--err">{health.failing} fallo</span>}
+          </div>
+        </div>
+        <div className="cp__info-health-item">
+          <span>Almacenamiento total</span>
+          <strong>{used} / {total} GB ({Math.round((used / total) * 100)}%)</strong>
+        </div>
+        <div className="cp__info-health-item">
+          <span>Volúmenes activos</span>
+          <strong>{volumes.filter(v => v.status === 'normal').length} / {volumes.length}</strong>
+        </div>
+      </div>
+
       <div className="cp__info-grid">
         {rows.map(([k, v]) => (
           <div key={k} className="cp__info-row">
@@ -60,165 +141,99 @@ function SysInfo() {
   );
 }
 
-function NetworkSection() {
-  const [dhcp, setDhcp] = useState(true);
+/* ─── Security section ─── */
+function SecuritySection() {
   const { addNotification } = useSystemStore();
-  const { openWindow } = useWindowStore();
+  const [settings, setSettings] = useState({
+    firewall: true,
+    autoUpdates: true,
+    ssh: false,
+    twoFactor: false,
+    readonly: false,
+    inactivity: 'Nunca',
+  });
 
-  const services = [
-    { name: 'SMB / CIFS',  port: 445,  active: true,  color: '#0ea5e9' },
-    { name: 'SFTP',        port: 22,   active: true,  color: '#6366f1' },
-    { name: 'NFS v4',      port: 2049, active: false, color: '#10b981' },
-    { name: 'FTP',         port: 21,   active: false, color: '#f59e0b' },
-    { name: 'WebDAV',      port: 5005, active: false, color: '#ec4899' },
-    { name: 'Rsync',       port: 873,  active: false, color: '#14b8a6' },
-  ];
-
-  const goToNetworkServices = () => {
-    openWindow('network-services', 'Servicios de Red', '🌐', 960, 640, 700, 480);
-  };
-
-  const save = () => addNotification('Red guardada', 'Configuración de red aplicada', 'success');
+  const toggle = (key: keyof typeof settings) =>
+    setSettings(p => ({ ...p, [key]: !p[key as keyof typeof settings] }));
 
   return (
     <div className="cp__section">
-      <h3 className="cp__section-title">Configuración de Red</h3>
-
-      {/* Service status mini-cards */}
-      <div className="cp__net-services">
-        <div className="cp__net-services-header">
-          <span>Servicios activos</span>
-          <button className="cp__link-btn" onClick={goToNetworkServices}>
-            <Globe size={12}/> Gestionar servicios →
-          </button>
-        </div>
-        <div className="cp__net-services-grid">
-          {services.map(svc => (
-            <div key={svc.name} className={`cp__net-svc ${svc.active ? 'cp__net-svc--on' : ''}`}>
-              <div className="cp__net-svc-dot" style={{ background: svc.active ? svc.color : 'var(--border-color-strong)' }}/>
-              <span className="cp__net-svc-name">{svc.name}</span>
-              <span className="cp__net-svc-port">:{svc.port}</span>
-              {svc.active
-                ? <CheckCircle2 size={12} style={{ color: '#00b87c', marginLeft: 'auto' }}/>
-                : <XCircle size={12} style={{ color: 'var(--text-muted)', marginLeft: 'auto' }}/>
-              }
-            </div>
-          ))}
-        </div>
-      </div>
-
+      <h3 className="cp__section-title">Seguridad</h3>
       <div className="cp__form">
+        {([
+          ['firewall',    'Firewall activo'],
+          ['autoUpdates', 'Actualizaciones automáticas'],
+          ['ssh',         'Acceso SSH habilitado'],
+          ['twoFactor',   '2FA para administradores'],
+          ['readonly',    'Modo de solo lectura'],
+        ] as [keyof typeof settings, string][]).map(([key, label]) => (
+          <div key={key} className="cp__form-row">
+            <label className="cp__label">{label}</label>
+            <label className="cp__switch">
+              <input type="checkbox" checked={settings[key] as boolean}
+                onChange={() => toggle(key)}/>
+              <span className="cp__switch-slider"/>
+            </label>
+          </div>
+        ))}
         <div className="cp__form-row">
-          <label className="cp__label">Interfaz</label>
-          <select className="cp__input">
-            <option>eth0 (Ethernet)</option>
-            <option>wlan0 (Wi-Fi)</option>
+          <label className="cp__label">Bloqueo tras inactividad</label>
+          <select className="cp__input" value={settings.inactivity}
+            onChange={e => setSettings(p => ({ ...p, inactivity: e.target.value }))}>
+            <option>Nunca</option><option>5 min</option>
+            <option>15 min</option><option>30 min</option><option>1 hora</option>
           </select>
         </div>
-        <div className="cp__form-row">
-          <label className="cp__label">Modo IP</label>
-          <div className="cp__toggle-group">
-            <button className={`cp__toggle ${dhcp ? 'cp__toggle--on' : ''}`} onClick={() => setDhcp(true)}>DHCP</button>
-            <button className={`cp__toggle ${!dhcp ? 'cp__toggle--on' : ''}`} onClick={() => setDhcp(false)}>Estática</button>
-          </div>
-        </div>
-        {!dhcp && (
-          <>
-            <div className="cp__form-row"><label className="cp__label">Dirección IP</label><input className="cp__input" defaultValue="192.168.1.100" /></div>
-            <div className="cp__form-row"><label className="cp__label">Máscara de red</label><input className="cp__input" defaultValue="255.255.255.0" /></div>
-            <div className="cp__form-row"><label className="cp__label">Gateway</label><input className="cp__input" defaultValue="192.168.1.1" /></div>
-          </>
-        )}
-        <div className="cp__form-row"><label className="cp__label">DNS Primario</label><input className="cp__input" defaultValue="8.8.8.8" /></div>
-        <div className="cp__form-row"><label className="cp__label">DNS Secundario</label><input className="cp__input" defaultValue="8.8.4.4" /></div>
-        <button className="cp__save-btn" onClick={save}>Guardar Configuración</button>
+        <button className="cp__save-btn"
+          onClick={() => addNotification('Seguridad', 'Configuración de seguridad guardada', 'success')}>
+          Guardar
+        </button>
       </div>
     </div>
   );
 }
 
-function StorageSection() {
-  const { openWindow } = useWindowStore();
-  const { volumes, getDiskHealthSummary } = useStorageStore();
-  const health = getDiskHealthSummary();
+/* ─── Notifications section ─── */
+function NotifSection() {
+  const { addNotification } = useSystemStore();
+  const [settings, setSettings] = useState({
+    system:    true,
+    email:     true,
+    diskFull:  true,
+    raidFault: true,
+  });
+
+  const LABELS: Record<keyof typeof settings, string> = {
+    system:    'Notificaciones del sistema',
+    email:     'Email al administrador',
+    diskFull:  'Alerta de disco lleno',
+    raidFault: 'Alerta de fallo RAID',
+  };
 
   return (
     <div className="cp__section">
-      <h3 className="cp__section-title">Almacenamiento</h3>
-
-      {/* Health summary */}
-      <div className="cp__storage-health">
-        <div className="cp__health-item cp__health-item--ok"><span className="cp__health-dot cp__health-dot--ok"/>{health.healthy} disco{health.healthy !== 1 ? 's' : ''} OK</div>
-        {health.warning > 0 && <div className="cp__health-item cp__health-item--warn"><span className="cp__health-dot cp__health-dot--warn"/>{health.warning} con aviso</div>}
-        {health.failing > 0 && <div className="cp__health-item cp__health-item--err"><span className="cp__health-dot cp__health-dot--err"/>{health.failing} fallo</div>}
-      </div>
-
-      {volumes.map((v) => {
-        const pct = Math.round((v.usedGB / v.totalGB) * 100);
-        return (
-          <div key={v.id} className="cp__vol">
-            <div className="cp__vol-header">
-              <span className="cp__vol-name">
-                <HardDrive size={14} /> {v.name}
-                {v.status !== 'normal' && <span style={{ color: '#f59e0b', fontSize: 11, marginLeft: 4 }}>({v.status})</span>}
-              </span>
-              <span className="cp__vol-label">{v.mountPoint} · {v.raidType}</span>
-            </div>
-            <div className="cp__progress-wrap">
-              <div className="cp__progress">
-                <div className="cp__progress-bar" style={{ width: `${pct}%`, background: pct > 80 ? '#ef4444' : pct > 60 ? '#f59e0b' : '#10b981' }}/>
-              </div>
-              <span className="cp__vol-info">{v.usedGB} / {v.totalGB} GB ({pct}%)</span>
-            </div>
-          </div>
-        );
-      })}
-
-      <button className="cp__save-btn" style={{ marginTop: 8 }}
-        onClick={() => openWindow('storage-manager', 'Almacenamiento', '💿', 1040, 660, 780, 500)}>
-        → Abrir Administrador de almacenamiento
-      </button>
-    </div>
-  );
-}
-
-function UsersSection() {
-  const { users, groups } = useUserStore();
-  const { openWindow } = useWindowStore();
-
-  return (
-    <div className="cp__section">
-      <h3 className="cp__section-title">Gestión de Usuarios</h3>
-      <div className="cp__user-table">
-        <div className="cp__user-header">
-          <span>Usuario</span><span>Rol</span><span>Estado</span><span>Grupos</span>
-        </div>
-        {users.map((u) => (
-          <div key={u.id} className="cp__user-row cp__user-row--wide">
-            <span className="cp__user-name">
-              <div className="cp__user-avatar">{u.displayName[0]}</div>
-              {u.displayName}
-            </span>
-            <span className={`cp__badge ${u.isAdmin ? 'cp__badge--role' : 'cp__badge--inactive'}`}>
-              {u.isAdmin ? 'Administrador' : 'Usuario'}
-            </span>
-            <span className={`cp__badge ${u.status === 'active' ? 'cp__badge--active' : 'cp__badge--inactive'}`}>
-              {u.status === 'active' ? 'Activo' : u.status === 'locked' ? 'Bloqueado' : 'Inactivo'}
-            </span>
-            <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-              {groups.filter(g => u.groups.includes(g.id)).map(g => g.name).join(', ')}
-            </span>
+      <h3 className="cp__section-title">Notificaciones</h3>
+      <div className="cp__form">
+        {(Object.keys(settings) as (keyof typeof settings)[]).map(key => (
+          <div key={key} className="cp__form-row">
+            <label className="cp__label">{LABELS[key]}</label>
+            <label className="cp__switch">
+              <input type="checkbox" checked={settings[key]}
+                onChange={() => setSettings(p => ({ ...p, [key]: !p[key] }))}/>
+              <span className="cp__switch-slider"/>
+            </label>
           </div>
         ))}
       </div>
-      <button className="cp__save-btn" style={{ marginTop: 14 }}
-        onClick={() => openWindow('user-manager', 'Usuarios y Grupos', '👥', 1020, 640, 760, 480)}>
-        → Abrir Gestor de Usuarios
+      <button className="cp__save-btn" style={{ marginTop: 16 }}
+        onClick={() => addNotification('Prueba', 'Notificación de prueba enviada', 'info')}>
+        Enviar notificación de prueba
       </button>
     </div>
   );
 }
 
+/* ─── Appearance section ─── */
 function AppearanceSection() {
   const { theme, toggleTheme } = useSystemStore();
   return (
@@ -228,12 +243,8 @@ function AppearanceSection() {
         <div className="cp__form-row">
           <label className="cp__label">Tema del sistema</label>
           <div className="cp__toggle-group">
-            <button className={`cp__toggle ${theme === 'light' ? 'cp__toggle--on' : ''}`} onClick={() => theme !== 'light' && toggleTheme()}>
-              ☀️ Claro
-            </button>
-            <button className={`cp__toggle ${theme === 'dark' ? 'cp__toggle--on' : ''}`} onClick={() => theme !== 'dark' && toggleTheme()}>
-              🌙 Oscuro
-            </button>
+            <button className={`cp__toggle ${theme === 'light' ? 'cp__toggle--on' : ''}`} onClick={() => theme !== 'light' && toggleTheme()}>☀️ Claro</button>
+            <button className={`cp__toggle ${theme === 'dark'  ? 'cp__toggle--on' : ''}`} onClick={() => theme !== 'dark'  && toggleTheme()}>🌙 Oscuro</button>
           </div>
         </div>
         <div className="cp__form-row">
@@ -244,45 +255,12 @@ function AppearanceSection() {
             <option>Português (BR)</option>
           </select>
         </div>
-      </div>
-    </div>
-  );
-}
-
-function SecuritySection() {
-  return (
-    <div className="cp__section">
-      <h3 className="cp__section-title">Seguridad</h3>
-      <div className="cp__form">
         <div className="cp__form-row">
-          <label className="cp__label">Firewall</label>
-          <label className="cp__switch">
-            <input type="checkbox" defaultChecked />
-            <span className="cp__switch-slider" />
-          </label>
-        </div>
-        <div className="cp__form-row">
-          <label className="cp__label">Actualizaciones automáticas</label>
-          <label className="cp__switch">
-            <input type="checkbox" defaultChecked />
-            <span className="cp__switch-slider" />
-          </label>
-        </div>
-        <div className="cp__form-row">
-          <label className="cp__label">SSH</label>
-          <label className="cp__switch">
-            <input type="checkbox" />
-            <span className="cp__switch-slider" />
-          </label>
-        </div>
-        <div className="cp__form-row">
-          <label className="cp__label">Bloqueo tras inactividad</label>
+          <label className="cp__label">Fuente de interfaz</label>
           <select className="cp__input">
-            <option>Nunca</option>
-            <option>5 minutos</option>
-            <option>15 minutos</option>
-            <option>30 minutos</option>
-            <option>1 hora</option>
+            <option>SF Pro / System UI</option>
+            <option>Inter</option>
+            <option>Roboto</option>
           </select>
         </div>
       </div>
@@ -290,70 +268,75 @@ function SecuritySection() {
   );
 }
 
-function NotifSection() {
-  const { addNotification } = useSystemStore();
+/* ─── Embedded full-app wrapper ─── */
+function EmbeddedApp({ children }: { children: React.ReactNode }) {
   return (
-    <div className="cp__section">
-      <h3 className="cp__section-title">Notificaciones</h3>
-      <div className="cp__form">
-        <div className="cp__form-row">
-          <label className="cp__label">Notificaciones del sistema</label>
-          <label className="cp__switch">
-            <input type="checkbox" defaultChecked />
-            <span className="cp__switch-slider" />
-          </label>
-        </div>
-        <div className="cp__form-row">
-          <label className="cp__label">Sonido</label>
-          <label className="cp__switch">
-            <input type="checkbox" />
-            <span className="cp__switch-slider" />
-          </label>
-        </div>
-      </div>
-      <button
-        className="cp__save-btn"
-        onClick={() => addNotification('Prueba', 'Esta es una notificación de prueba', 'info')}
-        style={{ marginTop: 16 }}
-      >
-        Enviar notificación de prueba
-      </button>
+    <div style={{
+      flex: 1,
+      display: 'flex',
+      flexDirection: 'column',
+      overflow: 'hidden',
+      height: '100%',
+    }}>
+      {children}
     </div>
   );
 }
 
-const SECTIONS: Record<Section, React.ReactNode> = {
-  info:          <SysInfo />,
-  network:       <NetworkSection />,
-  storage:       <StorageSection />,
-  users:         <UsersSection />,
-  security:      <SecuritySection />,
-  notifications: <NotifSection />,
-  appearance:    <AppearanceSection />,
-};
+/* ─── Section renderer ─── */
+function renderSection(section: Section): React.ReactNode {
+  switch (section) {
+    case 'info':            return <SysInfo/>;
+    case 'network':         return <EmbeddedApp><NetworkServices/></EmbeddedApp>;
+    case 'shared-folders':  return <EmbeddedApp><NetworkServices initialTab="shares"/></EmbeddedApp>;
+    case 'storage':         return <EmbeddedApp><StorageManager/></EmbeddedApp>;
+    case 'zfs':             return <EmbeddedApp><ZFSPanel/></EmbeddedApp>;
+    case 'users':           return <EmbeddedApp><UserManager/></EmbeddedApp>;
+    case 'ssh':             return <EmbeddedApp><SSHManager/></EmbeddedApp>;
+    case 'vpn':             return <EmbeddedApp><VPNManager/></EmbeddedApp>;
+    case 'logs':            return <EmbeddedApp><LogCenter/></EmbeddedApp>;
+    case 'tasks':           return <EmbeddedApp><TaskManager/></EmbeddedApp>;
+    case 'security':        return <SecuritySection/>;
+    case 'notifications':   return <NotifSection/>;
+    case 'appearance':      return <AppearanceSection/>;
+  }
+}
 
+/* ─── Main ─── */
 export function ControlPanel() {
   const [active, setActive] = useState<Section>('info');
+  const isFullApp = !['info','security','notifications','appearance'].includes(active);
 
   return (
     <div className="cp">
-      <aside className="cp__nav">
+      {/* Left sidebar */}
+      <aside className="cp__nav cp__nav--wide">
         <div className="cp__nav-header">
-          <Server size={14} /> Panel de Control
+          <Server size={13}/> Panel de Control
         </div>
-        {NAV.map((item) => (
-          <button
-            key={item.id}
-            className={`cp__nav-item ${active === item.id ? 'cp__nav-item--active' : ''}`}
-            onClick={() => setActive(item.id)}
-          >
-            {item.icon}
-            {item.label}
-          </button>
+        {NAV_GROUPS.map(group => (
+          <div key={group.label} className="cp__nav-group">
+            <div className="cp__nav-group-label">{group.label}</div>
+            {group.items.map(item => (
+              <button
+                key={item.id}
+                className={`cp__nav-item ${active === item.id ? 'cp__nav-item--active' : ''}`}
+                onClick={() => setActive(item.id)}
+              >
+                {item.icon}
+                <span>{item.label}</span>
+                {['network','storage','zfs','users','ssh','vpn','logs','tasks','shared-folders'].includes(item.id) && (
+                  <ChevronRight size={11} style={{ marginLeft: 'auto', opacity: 0.4 }}/>
+                )}
+              </button>
+            ))}
+          </div>
         ))}
       </aside>
-      <div className="cp__content">
-        {SECTIONS[active]}
+
+      {/* Content — full height for embedded apps */}
+      <div className={`cp__content ${isFullApp ? 'cp__content--full' : ''}`}>
+        {renderSection(active)}
       </div>
     </div>
   );

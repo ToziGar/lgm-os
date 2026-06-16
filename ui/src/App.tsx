@@ -20,6 +20,7 @@ import { LogCenter } from './apps/LogCenter/LogCenter';
 import { VPNManager } from './apps/VPNManager/VPNManager';
 import { UserManager } from './apps/UserManager/UserManager';
 import { StorageManager } from './apps/StorageManager/StorageManager';
+import { ZFSPanel } from './apps/ZFSPanel/ZFSPanel';
 
 function renderApp(appId: string) {
   switch (appId) {
@@ -37,6 +38,7 @@ function renderApp(appId: string) {
     case 'vpn-manager':       return <VPNManager />;
     case 'user-manager':      return <UserManager />;
     case 'storage-manager':   return <StorageManager />;
+    case 'zfs-panel':         return <ZFSPanel />;
     default: return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-secondary)' }}>
         Aplicación no encontrada

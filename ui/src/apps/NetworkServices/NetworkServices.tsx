@@ -150,13 +150,14 @@ function ServicesTab() {
 
       {/* Quick access URLs */}
       <div className="ns__info-block">
-        <div className="ns__info-title"><Wifi size={13}/> Acceso rápido</div>
+        <div className="ns__info-title"><Wifi size={13}/> Acceso rápido desde la red local</div>
         <div className="ns__url-grid">
           <div className="ns__url-row"><span className="ns__url-label">SMB (Windows)</span><code className="ns__url-val">\\192.168.1.100\</code></div>
-          <div className="ns__url-row"><span className="ns__url-label">SMB (macOS)</span><code className="ns__url-val">smb://192.168.1.100/</code></div>
-          <div className="ns__url-row"><span className="ns__url-label">SFTP</span><code className="ns__url-val">sftp://admin@192.168.1.100/</code></div>
-          <div className="ns__url-row"><span className="ns__url-label">WebDAV</span><code className="ns__url-val">https://192.168.1.100:5005/</code></div>
-          <div className="ns__url-row"><span className="ns__url-label">NFS</span><code className="ns__url-val">mount -t nfs 192.168.1.100:/volume1 /mnt</code></div>
+          <div className="ns__url-row"><span className="ns__url-label">SMB (macOS/Linux)</span><code className="ns__url-val">smb://lgm-nas-01.local/</code></div>
+          <div className="ns__url-row"><span className="ns__url-label">SFTP</span><code className="ns__url-val">sftp://admin@192.168.1.100</code></div>
+          <div className="ns__url-row"><span className="ns__url-label">WebDAV (HTTPS)</span><code className="ns__url-val">https://lgm-nas-01.local:5005/</code></div>
+          <div className="ns__url-row"><span className="ns__url-label">NFS</span><code className="ns__url-val">mount -t nfs 192.168.1.100:/volume1 /mnt/nas</code></div>
+          <div className="ns__url-row"><span className="ns__url-label">SSH</span><code className="ns__url-val">ssh admin@192.168.1.100</code></div>
         </div>
       </div>
     </div>
@@ -254,6 +255,7 @@ function SharesTab() {
 
 /* ───────────── Users & Permissions tab ───────────── */
 function UsersTab() {
+  const { addNotification } = useSystemStore();
   const [users] = useState([
     { name: 'admin', displayName: 'Administrador', smb: true,  ftp: true,  sftp: true,  quota: '—',    isAdmin: true  },
     { name: 'lgm',   displayName: 'LGM User',       smb: true,  ftp: false, sftp: true,  quota: '50 GB', isAdmin: false },
@@ -264,7 +266,10 @@ function UsersTab() {
     <div className="ns__section">
       <div className="ns__section-header">
         <h3>Usuarios y Permisos</h3>
-        <button className="ns__action-btn ns__action-btn--primary"><Plus size={13}/> Nuevo usuario</button>
+        <button className="ns__action-btn ns__action-btn--primary"
+          onClick={() => addNotification('Usuarios', 'Gestiona los usuarios en Panel de Control → Usuarios y grupos', 'info')}>
+          <Plus size={13}/> Gestionar usuarios
+        </button>
       </div>
 
       <div className="ns__users-table">
@@ -381,8 +386,8 @@ const TABS: { id: NavTab; label: string; icon: React.ReactNode }[] = [
   { id: 'advanced', label: 'Avanzado',            icon: <Settings size={14}/> },
 ];
 
-export function NetworkServices() {
-  const [tab, setTab] = useState<NavTab>('services');
+export function NetworkServices({ initialTab }: { initialTab?: NavTab } = {}) {
+  const [tab, setTab] = useState<NavTab>(initialTab ?? 'services');
 
   return (
     <div className="ns">

@@ -23,38 +23,38 @@ export function AppWindow({ window: win, children }: Props) {
       className={`window__titlebar ${win.isFocused ? 'window__titlebar--focused' : ''}`}
       onDoubleClick={() => maximizeWindow(win.id)}
     >
+      <div className="window__titlebar-left">
+        <span className="window__icon">
+          <AppIconSVG appId={win.appId} size={15} />
+          {!['file-station','control-panel','package-center','terminal','text-editor',
+              'system-info','calculator','network-services','ssh-manager',
+              'shared-folders','vpn','vpn-manager','task-manager','log-center',
+              'user-manager','storage-manager','zfs-panel'].includes(win.appId) && win.icon}
+        </span>
+        <span className="window__title">{win.title}</span>
+      </div>
       <div className="window__titlebar-actions">
-        <button
-          className="window__btn window__btn--close"
-          onClick={(e) => { e.stopPropagation(); closeWindow(win.id); }}
-          title="Cerrar"
-        >
-          <X size={7} />
-        </button>
         <button
           className="window__btn window__btn--min"
           onClick={(e) => { e.stopPropagation(); minimizeWindow(win.id); }}
           title="Minimizar"
         >
-          <Minus size={7} />
+          <Minus size={10} />
         </button>
         <button
           className="window__btn window__btn--max"
           onClick={(e) => { e.stopPropagation(); maximizeWindow(win.id); }}
           title={win.isMaximized ? 'Restaurar' : 'Maximizar'}
         >
-          {win.isMaximized ? <Square size={7} /> : <Maximize2 size={7} />}
+          {win.isMaximized ? <Square size={10} /> : <Maximize2 size={10} />}
         </button>
-      </div>
-      <div className="window__titlebar-left">
-        <span className="window__icon">
-          <AppIconSVG appId={win.appId} size={16} />
-          {!['file-station','control-panel','package-center','terminal','text-editor',
-              'system-info','calculator','network-services','ssh-manager',
-              'shared-folders','vpn','vpn-manager','task-manager','log-center',
-              'user-manager','storage-manager'].includes(win.appId) && win.icon}
-        </span>
-        <span className="window__title">{win.title}</span>
+        <button
+          className="window__btn window__btn--close"
+          onClick={(e) => { e.stopPropagation(); closeWindow(win.id); }}
+          title="Cerrar"
+        >
+          <X size={10} />
+        </button>
       </div>
     </div>
   );

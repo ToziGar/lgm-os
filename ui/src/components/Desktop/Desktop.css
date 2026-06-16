@@ -4,174 +4,393 @@
   bottom: var(--taskbar-height);
   overflow: hidden;
   user-select: none;
+  isolation: isolate;
 }
 
-/* Dot-grid overlay */
+/* ══════════════════════════════════════
+   WALLPAPERS — DSM 7.3 / Apple macOS style
+   ══════════════════════════════════════ */
+
+/* ─────────────────────────────────────────────
+   1. DSM Signature — Deep Ocean Blue (default)
+   Inspirado en el fondo oficial de Synology DSM 7.3
+   ───────────────────────────────────────────── */
+.wp--dsm {
+  background:
+    radial-gradient(ellipse 140% 80% at 100% 0%, rgba(0,180,255,0.55) 0%, transparent 50%),
+    radial-gradient(ellipse 100% 70% at 0% 100%, rgba(26,82,210,0.6) 0%, transparent 55%),
+    radial-gradient(ellipse 80% 60% at 50% 40%, rgba(12,56,180,0.35) 0%, transparent 65%),
+    linear-gradient(155deg, #051535 0%, #072050 20%, #0a2e70 45%, #0c3a8a 65%, #082060 100%);
+}
+.wp--dsm::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    /* Light sweep from top-right */
+    radial-gradient(ellipse 60% 40% at 85% 5%, rgba(100,200,255,0.22) 0%, transparent 60%),
+    /* Bottom-left glow */
+    radial-gradient(ellipse 50% 35% at 10% 95%, rgba(30,100,255,0.25) 0%, transparent 55%),
+    /* Center ambient */
+    radial-gradient(ellipse 70% 50% at 45% 55%, rgba(20,80,200,0.12) 0%, transparent 60%);
+  pointer-events: none;
+  animation: dsmShimmer 14s ease-in-out infinite alternate;
+}
+.wp--dsm::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  /* DSM signature diagonal light streak */
+  background:
+    linear-gradient(115deg,
+      transparent 0%,
+      transparent 35%,
+      rgba(120,200,255,0.06) 42%,
+      rgba(180,230,255,0.10) 48%,
+      rgba(120,200,255,0.06) 54%,
+      transparent 60%,
+      transparent 100%);
+  pointer-events: none;
+  animation: dsmStreak 18s ease-in-out infinite alternate;
+}
+
+/* ─────────────────────────────────────────────
+   2. Monterey — macOS Monterey Multi-colour
+   Naranja → Coral → Magenta → Violeta vibrante
+   ───────────────────────────────────────────── */
+.wp--monterey {
+  background:
+    radial-gradient(ellipse 110% 80% at 90% 0%,  rgba(255,140,50,0.90) 0%,  transparent 45%),
+    radial-gradient(ellipse 90%  70% at 10% 100%, rgba(180,30,200,0.75) 0%,  transparent 45%),
+    radial-gradient(ellipse 70%  60% at 55% 50%,  rgba(220,60,120,0.50) 0%,  transparent 55%),
+    radial-gradient(ellipse 80%  55% at 0%  30%,  rgba(255,100,20,0.40) 0%,  transparent 55%),
+    radial-gradient(ellipse 60%  45% at 100% 70%, rgba(120,20,220,0.45) 0%,  transparent 55%),
+    linear-gradient(145deg, #2a0a40 0%, #5c1060 30%, #8b1a60 55%, #b02840 75%, #c44020 100%);
+}
+.wp--monterey::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 50% 35% at 75% 20%, rgba(255,180,80,0.20) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 30% at 20% 75%, rgba(200,50,220,0.18) 0%, transparent 55%);
+  animation: colorPulse 10s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+.wp--monterey::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    125deg,
+    transparent 0%, transparent 40%,
+    rgba(255,255,255,0.04) 46%, rgba(255,255,255,0.07) 50%, rgba(255,255,255,0.04) 54%,
+    transparent 60%, transparent 100%
+  );
+  pointer-events: none;
+  animation: glassShine 16s ease-in-out infinite alternate;
+}
+
+/* ─────────────────────────────────────────────
+   3. Sonoma — macOS Sonoma Sunset
+   Dorado → Coral → Rosa → Lila  
+   ───────────────────────────────────────────── */
+.wp--sonoma {
+  background:
+    radial-gradient(ellipse 120% 80% at 70% -10%, rgba(255,200,50,0.70) 0%, transparent 45%),
+    radial-gradient(ellipse 100% 70% at 100% 60%,  rgba(255,80,120,0.65) 0%, transparent 45%),
+    radial-gradient(ellipse 80%  65% at 0%  60%,   rgba(255,120,20,0.55) 0%, transparent 50%),
+    radial-gradient(ellipse 70%  55% at 45% 100%,  rgba(180,60,220,0.50) 0%, transparent 50%),
+    radial-gradient(ellipse 50%  40% at 80%  80%,  rgba(120,40,200,0.40) 0%, transparent 50%),
+    linear-gradient(160deg, #1a0a30 0%, #401055 20%, #700a40 40%, #9a2020 60%, #b04010 80%, #8a2030 100%);
+}
+.wp--sonoma::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 40% at 65% 5%,  rgba(255,220,100,0.15) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 35% at 30% 85%, rgba(200,80,200,0.12) 0%, transparent 55%);
+  animation: sonomaGlow 12s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+.wp--sonoma::after {
+  content: '';
+  position: absolute;
+  width: 100%; height: 100%;
+  background:
+    /* Horizontal warm gradient band */
+    linear-gradient(180deg,
+      rgba(255,180,50,0.07) 0%,
+      transparent 30%,
+      transparent 65%,
+      rgba(150,40,180,0.06) 100%);
+  pointer-events: none;
+}
+
+/* ─────────────────────────────────────────────
+   4. Sequoia — macOS Sequoia Forest
+   Verde oscuro bosque → Teal → Azul noche
+   ───────────────────────────────────────────── */
+.wp--sequoia {
+  background:
+    radial-gradient(ellipse 100% 70% at 0%   0%,   rgba(0,160,100,0.55) 0%, transparent 50%),
+    radial-gradient(ellipse 90%  65% at 100% 100%, rgba(0,100,180,0.50) 0%, transparent 50%),
+    radial-gradient(ellipse 70%  55% at 50%  50%,  rgba(0,120,80,0.30) 0%, transparent 60%),
+    radial-gradient(ellipse 60%  45% at 80%  20%,  rgba(0,180,140,0.35) 0%, transparent 50%),
+    radial-gradient(ellipse 50%  40% at 20%  80%,  rgba(0,80,160,0.30) 0%, transparent 50%),
+    linear-gradient(145deg, #011a12 0%, #042e20 25%, #054030 50%, #063250 75%, #041a30 100%);
+}
+.wp--sequoia::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 55% 35% at 10% 10%,  rgba(0,220,150,0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 45% 30% at 90% 90%,  rgba(0,140,220,0.10) 0%, transparent 55%);
+  animation: sequoiaPulse 15s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+.wp--sequoia::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  /* Tree silhouette light from top */
+  background: linear-gradient(175deg,
+    rgba(0,200,130,0.08) 0%,
+    transparent 35%,
+    transparent 65%,
+    rgba(0,80,160,0.06) 100%);
+  pointer-events: none;
+}
+
+/* ─────────────────────────────────────────────
+   5. Ventura — macOS Ventura Deep Purple
+   Indigo → Violeta → Azul Royal
+   ───────────────────────────────────────────── */
+.wp--ventura {
+  background:
+    radial-gradient(ellipse 110% 75% at 80% -5%,  rgba(120,80,255,0.65) 0%, transparent 45%),
+    radial-gradient(ellipse 90%  65% at 0%  100%,  rgba(60,20,200,0.55) 0%, transparent 48%),
+    radial-gradient(ellipse 70%  55% at 40%  55%,  rgba(80,40,220,0.30) 0%, transparent 58%),
+    radial-gradient(ellipse 60%  45% at 90%  70%,  rgba(160,80,255,0.35) 0%, transparent 50%),
+    radial-gradient(ellipse 50%  40% at 15%  30%,  rgba(40,60,200,0.30) 0%, transparent 50%),
+    linear-gradient(155deg, #08051e 0%, #100838 20%, #180c50 40%, #200e60 60%, #180a48 80%, #100630 100%);
+}
+.wp--ventura::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 50% 35% at 75% 10%, rgba(180,120,255,0.15) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 28% at 15% 85%, rgba(80,40,220,0.12) 0%, transparent 55%);
+  animation: venturaPulse 13s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+.wp--ventura::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    transparent 0%, transparent 38%,
+    rgba(200,160,255,0.04) 44%, rgba(220,180,255,0.07) 50%, rgba(200,160,255,0.04) 56%,
+    transparent 62%, transparent 100%
+  );
+  pointer-events: none;
+  animation: glassShine 20s ease-in-out infinite alternate;
+}
+
+/* ─────────────────────────────────────────────
+   6. DSM Dark — Synology NightMode
+   Azul marino profundo con destellos sutiles
+   ───────────────────────────────────────────── */
+.wp--dsm-dark {
+  background:
+    radial-gradient(ellipse 100% 65% at 90% 0%,   rgba(20,80,200,0.30) 0%, transparent 55%),
+    radial-gradient(ellipse 80%  55% at 0%  100%,  rgba(10,50,160,0.25) 0%, transparent 55%),
+    radial-gradient(ellipse 60%  45% at 50%  50%,  rgba(15,60,140,0.15) 0%, transparent 65%),
+    linear-gradient(165deg, #010510 0%, #020a1e 25%, #030d28 50%, #040e2e 75%, #020818 100%);
+}
+.wp--dsm-dark::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  /* Subtle star field */
+  background:
+    radial-gradient(1px 1px at 18% 12%, rgba(255,255,255,0.5) 0%, transparent 100%),
+    radial-gradient(1px 1px at 76% 22%, rgba(255,255,255,0.45) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 52% 38%, rgba(200,220,255,0.55) 0%, transparent 100%),
+    radial-gradient(1px 1px at 35% 68%, rgba(255,255,255,0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 88% 58%, rgba(255,255,255,0.35) 0%, transparent 100%),
+    radial-gradient(2px 2px at 44% 82%, rgba(180,210,255,0.60) 0%, transparent 100%),
+    radial-gradient(1px 1px at 62% 72%, rgba(255,255,255,0.32) 0%, transparent 100%),
+    radial-gradient(1px 1px at 24% 48%, rgba(255,255,255,0.38) 0%, transparent 100%),
+    radial-gradient(1px 1px at 93% 35%, rgba(255,255,255,0.30) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 48% 14%, rgba(200,220,255,0.50) 0%, transparent 100%),
+    radial-gradient(1px 1px at 7%  78%, rgba(255,255,255,0.28) 0%, transparent 100%),
+    radial-gradient(1px 1px at 83% 88%, rgba(200,220,255,0.35) 0%, transparent 100%);
+  pointer-events: none;
+}
+.wp--dsm-dark::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 50% 35% at 88% 5%,  rgba(40,120,255,0.10) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 28% at 8%  92%,  rgba(20,80,200,0.08) 0%, transparent 55%);
+  animation: dsmDarkPulse 18s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+/* ─── Wallpaper-specific orb colours ─── */
+/* DSM: blues */
+.wp--dsm       .desktop__orb--1 { background: radial-gradient(circle, rgba(0,180,255,0.18) 0%, rgba(30,100,255,0.06) 50%, transparent 70%); }
+.wp--dsm       .desktop__orb--2 { background: radial-gradient(circle, rgba(20,100,255,0.14) 0%, rgba(0,150,255,0.04) 50%, transparent 70%); }
+.wp--dsm       .desktop__orb--3 { background: radial-gradient(circle, rgba(100,200,255,0.10) 0%, transparent 70%); }
+.wp--dsm       .desktop__orb--4 { background: radial-gradient(circle, rgba(0,220,255,0.07) 0%, transparent 70%); }
+/* Monterey: warm coral/magenta */
+.wp--monterey  .desktop__orb--1 { background: radial-gradient(circle, rgba(255,120,60,0.18) 0%, rgba(220,50,120,0.06) 50%, transparent 70%); }
+.wp--monterey  .desktop__orb--2 { background: radial-gradient(circle, rgba(180,30,200,0.14) 0%, rgba(255,80,80,0.04) 50%, transparent 70%); }
+.wp--monterey  .desktop__orb--3 { background: radial-gradient(circle, rgba(255,180,80,0.10) 0%, transparent 70%); }
+.wp--monterey  .desktop__orb--4 { background: radial-gradient(circle, rgba(220,60,200,0.08) 0%, transparent 70%); }
+/* Sonoma: golden-pink */
+.wp--sonoma    .desktop__orb--1 { background: radial-gradient(circle, rgba(255,200,60,0.18) 0%, rgba(255,80,100,0.06) 50%, transparent 70%); }
+.wp--sonoma    .desktop__orb--2 { background: radial-gradient(circle, rgba(200,50,180,0.14) 0%, rgba(255,140,40,0.04) 50%, transparent 70%); }
+.wp--sonoma    .desktop__orb--3 { background: radial-gradient(circle, rgba(255,160,80,0.10) 0%, transparent 70%); }
+.wp--sonoma    .desktop__orb--4 { background: radial-gradient(circle, rgba(180,60,200,0.07) 0%, transparent 70%); }
+/* Sequoia: forest green */
+.wp--sequoia   .desktop__orb--1 { background: radial-gradient(circle, rgba(0,200,120,0.18) 0%, rgba(0,100,180,0.06) 50%, transparent 70%); }
+.wp--sequoia   .desktop__orb--2 { background: radial-gradient(circle, rgba(0,140,200,0.14) 0%, rgba(0,180,100,0.04) 50%, transparent 70%); }
+.wp--sequoia   .desktop__orb--3 { background: radial-gradient(circle, rgba(0,220,140,0.10) 0%, transparent 70%); }
+.wp--sequoia   .desktop__orb--4 { background: radial-gradient(circle, rgba(0,160,80,0.07) 0%, transparent 70%); }
+/* Ventura: purple/indigo */
+.wp--ventura   .desktop__orb--1 { background: radial-gradient(circle, rgba(160,100,255,0.18) 0%, rgba(80,40,220,0.06) 50%, transparent 70%); }
+.wp--ventura   .desktop__orb--2 { background: radial-gradient(circle, rgba(100,60,220,0.14) 0%, rgba(160,80,255,0.04) 50%, transparent 70%); }
+.wp--ventura   .desktop__orb--3 { background: radial-gradient(circle, rgba(200,140,255,0.10) 0%, transparent 70%); }
+.wp--ventura   .desktop__orb--4 { background: radial-gradient(circle, rgba(120,60,240,0.07) 0%, transparent 70%); }
+/* DSM Dark: deep blue, subtle */
+.wp--dsm-dark  .desktop__orb--1 { background: radial-gradient(circle, rgba(40,100,255,0.10) 0%, rgba(20,60,200,0.04) 50%, transparent 70%); }
+.wp--dsm-dark  .desktop__orb--2 { background: radial-gradient(circle, rgba(20,80,200,0.08) 0%, rgba(0,120,255,0.03) 50%, transparent 70%); }
+.wp--dsm-dark  .desktop__orb--3 { background: radial-gradient(circle, rgba(60,120,255,0.06) 0%, transparent 70%); }
+.wp--dsm-dark  .desktop__orb--4 { background: radial-gradient(circle, rgba(0,180,255,0.05) 0%, transparent 70%); }
+
+/* ─── Wallpaper animations ─── */
+@keyframes dsmShimmer {
+  0%   { opacity: 0.8; transform: scale(1) translateY(0); }
+  100% { opacity: 1;   transform: scale(1.02) translateY(-8px); }
+}
+@keyframes dsmStreak {
+  0%   { transform: skewX(-5deg) translateX(-5%); opacity: 0.7; }
+  100% { transform: skewX(-5deg) translateX(5%);  opacity: 1; }
+}
+@keyframes colorPulse {
+  0%   { opacity: 0.7; transform: scale(1); }
+  100% { opacity: 1;   transform: scale(1.05); }
+}
+@keyframes glassShine {
+  0%   { transform: translateX(-8%) skewX(-2deg); opacity: 0.7; }
+  100% { transform: translateX(8%)  skewX(2deg);  opacity: 1; }
+}
+@keyframes sonomaGlow {
+  0%   { opacity: 0.6; transform: scale(0.97); }
+  100% { opacity: 1;   transform: scale(1.04); }
+}
+@keyframes sequoiaPulse {
+  0%   { opacity: 0.7; transform: scale(1); }
+  100% { opacity: 1;   transform: scale(1.03); }
+}
+@keyframes venturaPulse {
+  0%   { opacity: 0.65; transform: scale(0.98); }
+  100% { opacity: 1;    transform: scale(1.04); }
+}
+@keyframes dsmDarkPulse {
+  0%   { opacity: 0.6; transform: scale(1); }
+  100% { opacity: 1;   transform: scale(1.03); }
+}
+
+/* ─── Dot-grid overlay ─── */
 .desktop__grid-svg {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  z-index: 0;
+  z-index: 1;
 }
 
-/* Glowing orbs */
+/* ─── Light beams ─── */
+.desktop__beam {
+  position: absolute;
+  pointer-events: none;
+  z-index: 1;
+}
+.desktop__beam--1 {
+  width: 70vw; height: 70vh;
+  top: -25vh; right: -15vw;
+  background: conic-gradient(from 200deg at 60% 30%, transparent 0deg, rgba(255,255,255,0.025) 30deg, transparent 60deg);
+  animation: beamSpin1 40s linear infinite;
+  border-radius: 50%;
+}
+.desktop__beam--2 {
+  width: 50vw; height: 50vh;
+  bottom: -10vh; left: -10vw;
+  background: conic-gradient(from 30deg at 40% 60%, transparent 0deg, rgba(255,255,255,0.02) 35deg, transparent 70deg);
+  animation: beamSpin2 55s linear infinite reverse;
+  border-radius: 50%;
+}
+@keyframes beamSpin1 { to { transform: rotate(360deg); } }
+@keyframes beamSpin2 { to { transform: rotate(360deg); } }
+
+/* ─── Glowing orbs (base styles, colours overridden per wallpaper above) ─── */
 .desktop__orb {
   position: absolute;
   border-radius: 50%;
   pointer-events: none;
-  z-index: 0;
-  filter: blur(80px);
-  animation: orbFloat 12s ease-in-out infinite;
+  z-index: 1;
 }
 .desktop__orb--1 {
-  width: 500px; height: 500px;
-  background: rgba(45, 123, 255, 0.12);
-  top: -100px; right: -100px;
-  animation-delay: 0s;
+  width: 600px; height: 600px;
+  top: -180px; right: -120px;
+  filter: blur(60px);
+  animation: orb1Float 16s ease-in-out infinite;
 }
 .desktop__orb--2 {
-  width: 400px; height: 400px;
-  background: rgba(0, 180, 216, 0.08);
-  bottom: 80px; left: -80px;
-  animation-delay: -6s;
+  width: 500px; height: 500px;
+  bottom: 60px; left: -100px;
+  filter: blur(70px);
+  animation: orb2Float 20s ease-in-out infinite;
 }
-@keyframes orbFloat {
-  0%,100% { transform: translateY(0) scale(1); }
-  50%      { transform: translateY(-30px) scale(1.05); }
+.desktop__orb--3 {
+  width: 350px; height: 350px;
+  top: 30%; right: 25%;
+  filter: blur(80px);
+  animation: orb3Float 24s ease-in-out infinite;
 }
-
-/* Icon grid */
-.desktop__icons {
-  position: absolute;
-  top: 14px;
-  left: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  z-index: 2;
-  max-height: calc(100% - 28px);
-  flex-wrap: wrap;
-  align-content: flex-start;
+.desktop__orb--4 {
+  width: 280px; height: 280px;
+  bottom: 20%; left: 40%;
+  filter: blur(60px);
+  animation: orb4Float 18s ease-in-out infinite;
 }
 
-.desktop__icon {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
-  padding: 7px 5px 6px;
-  background: transparent;
-  border: 1px solid transparent;
-  cursor: pointer;
-  border-radius: 10px;
-  transition: background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
-  width: 76px;
-  outline: none;
-  position: relative;
+@keyframes orb1Float {
+  0%,100% { transform: translate(0,0) scale(1); }
+  33%     { transform: translate(-20px,30px) scale(1.04); }
+  66%     { transform: translate(15px,-20px) scale(0.97); }
 }
-.desktop__icon:hover {
-  background: rgba(255,255,255,0.1);
-  border-color: rgba(255,255,255,0.12);
-  transform: translateY(-1px);
+@keyframes orb2Float {
+  0%,100% { transform: translate(0,0) scale(1); }
+  40%     { transform: translate(25px,-35px) scale(1.06); }
+  70%     { transform: translate(-10px,20px) scale(0.95); }
 }
-.desktop__icon:active { transform: scale(0.94); }
-
-.desktop__icon-wrap {
-  width: 48px; height: 48px;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform var(--transition-fast);
-  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4));
+@keyframes orb3Float {
+  0%,100% { transform: translate(0,0); opacity: 0.6; }
+  50%     { transform: translate(-30px,25px); opacity: 1; }
 }
-.desktop__icon:hover .desktop__icon-wrap {
-  transform: scale(1.08) translateY(-2px);
-  filter: drop-shadow(0 8px 16px rgba(0,0,0,0.5));
+@keyframes orb4Float {
+  0%,100% { transform: translate(0,0); opacity: 0.4; }
+  50%     { transform: translate(20px,-15px); opacity: 0.8; }
 }
-
-.desktop__icon-emoji {
-  width: 48px; height: 48px;
-  border-radius: 11px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 24px;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.35);
-}
-
-.desktop__icon-label {
-  font-size: 10.5px;
-  font-weight: 500;
-  color: #ffffff;
-  text-shadow: 0 1px 6px rgba(0,0,0,0.9), 0 0 12px rgba(0,0,0,0.5);
-  text-align: center;
-  line-height: 1.25;
-  max-width: 70px;
-  word-break: break-word;
-}
-
-/* Context menu */
-.desktop__context {
-  position: fixed;
-  background: rgba(18, 20, 32, 0.97);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255,255,255,0.09);
-  border-radius: 11px;
-  padding: 5px;
-  min-width: 210px;
-  box-shadow: 0 12px 40px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3);
-  z-index: 9999;
-  animation: ctxIn 0.1s cubic-bezier(0.16,1,0.3,1);
-}
-@keyframes ctxIn {
-  from { opacity: 0; transform: scale(0.94) translateY(-4px); }
-  to   { opacity: 1; transform: scale(1) translateY(0); }
-}
-.desktop__context-item {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  width: 100%;
-  padding: 7px 11px;
-  background: none; border: none; border-radius: 6px;
-  font-size: 13px; color: rgba(255,255,255,0.82);
-  cursor: pointer; font-family: inherit;
-  transition: background var(--transition-fast);
-  text-align: left;
-}
-.desktop__context-item:hover { background: rgba(255,255,255,0.09); color: #fff; }
-.desktop__context-sep { height: 1px; background: rgba(255,255,255,0.07); margin: 3px 6px; }
-
-/* Wallpaper picker submenu */
-.desktop__wp-picker {
-  border-top: 1px solid rgba(255,255,255,0.06);
-  padding-top: 4px;
-  margin-top: 2px;
-}
-.desktop__wp-item {
-  display: flex; align-items: center; gap: 9px;
-  width: 100%; padding: 6px 11px;
-  background: none; border: none; border-radius: 6px;
-  font-size: 12px; color: rgba(255,255,255,0.72);
-  cursor: pointer; font-family: inherit;
-  transition: background var(--transition-fast);
-  text-align: left;
-}
-.desktop__wp-item:hover { background: rgba(255,255,255,0.08); color: #fff; }
-.desktop__wp-item--active { color: #fff; }
-.desktop__wp-preview {
-  width: 40px; height: 24px; border-radius: 5px; flex-shrink: 0;
-  border: 1px solid rgba(255,255,255,0.15);
-}
-
-.desktop__overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.06);
-  pointer-events: none;
-}
-
-/* Icon grid */
+/* ─── Desktop icon grid ─── */
 .desktop__icons {
   position: absolute;
   top: 16px;
@@ -179,7 +398,7 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  z-index: 2;
+  z-index: 10;
   max-height: calc(100% - 32px);
   flex-wrap: wrap;
   align-content: flex-start;
@@ -194,130 +413,120 @@
   background: transparent;
   border: 1px solid transparent;
   cursor: pointer;
-  border-radius: 10px;
-  transition: background var(--transition-fast), border-color var(--transition-fast);
+  border-radius: 12px;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
   width: 78px;
   outline: none;
 }
-
 .desktop__icon:hover {
-  background: rgba(255, 255, 255, 0.13);
-  border-color: rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.1);
+  border-color: rgba(255,255,255,0.13);
+  transform: translateY(-2px);
 }
+.desktop__icon:active { transform: scale(0.93) translateY(0); }
 
-.desktop__icon:focus {
-  background: rgba(255, 255, 255, 0.16);
-  border-color: rgba(255,255,255,0.15);
-}
-
-.desktop__icon-badge {
-  width: 48px;
-  height: 48px;
-  border-radius: 11px;
+.desktop__icon-wrap {
+  width: 50px; height: 50px;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.35), 0 1px 3px rgba(0,0,0,0.2);
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
-  flex-shrink: 0;
+  filter: drop-shadow(0 4px 14px rgba(0,0,0,0.5)) drop-shadow(0 1px 3px rgba(0,0,0,0.3));
+  transition: filter 0.15s ease, transform 0.15s ease;
+}
+.desktop__icon:hover .desktop__icon-wrap {
+  transform: scale(1.1) translateY(-2px);
+  filter: drop-shadow(0 8px 20px rgba(0,0,0,0.55)) drop-shadow(0 2px 6px rgba(0,0,0,0.4));
 }
 
-.desktop__icon:hover .desktop__icon-badge {
-  transform: scale(1.1) translateY(-1px);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+.desktop__icon-emoji {
+  width: 50px; height: 50px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.4), 0 2px 6px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15);
 }
 
 .desktop__icon-label {
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 500;
-  color: #ffffff;
-  text-shadow: 0 1px 5px rgba(0,0,0,0.8), 0 0 10px rgba(0,0,0,0.4);
+  color: rgba(255,255,255,0.93);
+  text-shadow: 0 1px 4px rgba(0,0,0,0.95), 0 0 8px rgba(0,0,0,0.7);
   text-align: center;
-  line-height: 1.25;
-  max-width: 70px;
+  line-height: 1.3;
+  max-width: 72px;
   word-break: break-word;
+  letter-spacing: 0.01em;
 }
 
-/* Context menu */
+/* ─── Context menu ─── */
 .desktop__context {
   position: fixed;
-  background: rgba(24, 26, 40, 0.97);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255,255,255,0.09);
-  border-radius: 10px;
+  background: rgba(14,16,28,0.97);
+  backdrop-filter: blur(32px) saturate(180%);
+  -webkit-backdrop-filter: blur(32px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
   padding: 5px;
-  min-width: 200px;
-  box-shadow: 0 12px 40px rgba(0,0,0,0.45), 0 2px 8px rgba(0,0,0,0.3);
+  min-width: 220px;
+  box-shadow:
+    0 24px 60px rgba(0,0,0,0.65),
+    0 4px 16px rgba(0,0,0,0.4),
+    inset 0 1px 0 rgba(255,255,255,0.06);
   z-index: 9999;
-  animation: contextIn 0.1s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: ctxIn 0.12s cubic-bezier(0.16,1,0.3,1);
 }
-
-@keyframes contextIn {
-  from { opacity: 0; transform: scale(0.94) translateY(-4px); }
+@keyframes ctxIn {
+  from { opacity: 0; transform: scale(0.93) translateY(-6px); }
   to   { opacity: 1; transform: scale(1) translateY(0); }
 }
-
 .desktop__context-item {
   display: flex;
   align-items: center;
   gap: 9px;
   width: 100%;
-  padding: 7px 11px;
+  padding: 7px 12px;
   background: none;
   border: none;
-  border-radius: 6px;
+  border-radius: 7px;
   font-size: 13px;
   color: rgba(255,255,255,0.82);
   cursor: pointer;
   font-family: inherit;
-  transition: background var(--transition-fast);
+  transition: background 0.1s ease;
   text-align: left;
 }
+.desktop__context-item:hover { background: rgba(255,255,255,0.09); color: #fff; }
+.desktop__context-sep { height: 1px; background: rgba(255,255,255,0.07); margin: 3px 8px; }
 
-.desktop__context-item:hover {
-  background: rgba(255,255,255,0.09);
-  color: #fff;
-}
-
-.desktop__context-sep {
-  height: 1px;
-  background: rgba(255,255,255,0.07);
-  margin: 4px 6px;
-}
-
-/* Wallpaper submenu */
-.desktop__wallpaper-submenu {
+/* ─── Wallpaper picker ─── */
+.desktop__wp-picker {
   border-top: 1px solid rgba(255,255,255,0.07);
-  margin-top: 2px;
   padding-top: 4px;
+  margin-top: 2px;
 }
-
-.desktop__wallpaper-item {
+.desktop__wp-item {
   display: flex;
   align-items: center;
   gap: 9px;
   width: 100%;
-  padding: 6px 11px;
+  padding: 6px 12px;
   background: none;
   border: none;
-  border-radius: 6px;
+  border-radius: 7px;
   font-size: 12px;
   color: rgba(255,255,255,0.72);
   cursor: pointer;
   font-family: inherit;
-  transition: background var(--transition-fast);
+  transition: background 0.1s ease;
   text-align: left;
 }
-
-.desktop__wallpaper-item:hover { background: rgba(255,255,255,0.08); color: #fff; }
-.desktop__wallpaper-item--active { color: #fff; }
-
-.desktop__wallpaper-preview {
-  width: 36px;
-  height: 22px;
-  border-radius: 4px;
+.desktop__wp-item:hover { background: rgba(255,255,255,0.08); color: #fff; }
+.desktop__wp-item--active { color: #fff; font-weight: 500; }
+.desktop__wp-preview {
+  width: 44px; height: 26px;
+  border-radius: 5px;
   flex-shrink: 0;
   border: 1px solid rgba(255,255,255,0.15);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
 }

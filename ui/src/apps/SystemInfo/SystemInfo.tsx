@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Cpu, MemoryStick, HardDrive, Network, RefreshCw, Activity, Server } from 'lucide-react';
+import { useStorageStore } from '../../store/storageStore';
+import { useSystemStore }  from '../../store/systemStore';
 import './SystemInfo.css';
 
 const R = (min: number, max: number) => Math.round(min + Math.random() * (max - min));
@@ -61,6 +63,11 @@ type Tab = 'overview' | 'processes' | 'network' | 'disk';
 
 export function SystemInfo() {
   const [tab, setTab] = useState<Tab>('overview');
+  const { volumes, disks, getDiskHealthSummary } = useStorageStore();
+  const { user } = useSystemStore();
+  const health = getDiskHealthSummary();
+  const totalStorageGB = volumes.reduce((s, v) => s + v.totalGB, 0);
+  const usedStorageGB  = volumes.reduce((s, v) => s + v.usedGB, 0);
 
   const cpuRef  = useRef<number[]>(Array.from({ length: HISTORY_LEN }, () => R(10, 50)));
   const memRef  = useRef<number[]>(Array.from({ length: HISTORY_LEN }, () => R(40, 65)));
@@ -116,7 +123,7 @@ export function SystemInfo() {
         <div className="sysinfo__header-left">
           <Server size={14} />
           <span>Monitor del Sistema</span>
-          <span className="sysinfo__hostname">lgmos</span>
+          <span className="sysinfo__hostname">lgm-nas-01</span>
         </div>
         <button className="sysinfo__refresh" onClick={refresh} title="Actualizar">
           <RefreshCw size={13} />
@@ -160,6 +167,8 @@ export function SystemInfo() {
               <span>Uptime: <strong>3d 7h 12m</strong></span>
               <span>Kernel: <strong>6.1.0-lgm-amd64</strong></span>
               <span>Temp: <strong style={{ color: temp > 70 ? '#ef4444' : temp > 60 ? '#f59e0b' : '#10b981' }}>{temp}°C</strong></span>
+              {health.warning > 0 && <span style={{ color: '#f59e0b', fontWeight: 700 }}>⚠ {health.warning} disco(s) con aviso</span>}
+              {health.failing > 0 && <span style={{ color: '#ef4444', fontWeight: 700 }}>❌ {health.failing} disco(s) fallando</span>}
             </div>
           </>
         )}
@@ -196,36 +205,45 @@ export function SystemInfo() {
             <div className="sysinfo__net-info">
               <div className="sysinfo__net-info-row"><span>Interfaz</span><strong>eth0</strong></div>
               <div className="sysinfo__net-info-row"><span>IP Local</span><strong>192.168.1.100</strong></div>
-              <div className="sysinfo__net-info-row"><span>Máscara</span><strong>255.255.255.0</strong></div>
+              <div className="sysinfo__net-info-row"><span>Máscara</span><strong>255.255.255.0 (/24)</strong></div>
               <div className="sysinfo__net-info-row"><span>Gateway</span><strong>192.168.1.1</strong></div>
-              <div className="sysinfo__net-info-row"><span>DNS</span><strong>8.8.8.8</strong></div>
+              <div className="sysinfo__net-info-row"><span>DNS primario</span><strong>8.8.8.8</strong></div>
+              <div className="sysinfo__net-info-row"><span>DNS secundario</span><strong>8.8.4.4</strong></div>
               <div className="sysinfo__net-info-row"><span>MAC</span><strong>a4:bb:6d:1c:00:ff</strong></div>
+              <div className="sysinfo__net-info-row"><span>Hostname</span><strong>lgm-nas-01.local</strong></div>
             </div>
           </div>
         )}
 
         {tab === 'disk' && (
           <div className="sysinfo__disk-detail">
-            {[
-              { label: 'Disco Principal (/dev/sda)', total: 953, used: Math.round(disk * 9.53), color: '#10b981' },
-              { label: 'Disco Secundario (/dev/sdb)', total: 500, used: 120, color: '#3b82f6' },
-            ].map((vol) => {
-              const pct = Math.round((vol.used / vol.total) * 100);
+            {/* Summary */}
+            <div className="sysinfo__info-row" style={{ marginBottom: 12 }}>
+              <span>Total almacenamiento: <strong>{totalStorageGB} GB ({(totalStorageGB/1024).toFixed(1)} TB)</strong></span>
+              <span>En uso: <strong>{usedStorageGB} GB</strong></span>
+              <span>Libre: <strong>{totalStorageGB - usedStorageGB} GB</strong></span>
+            </div>
+            {volumes.map((vol) => {
+              const pct = Math.round((vol.usedGB / vol.totalGB) * 100);
+              const volDisks = disks.filter(d => d.volumeId === vol.id);
               return (
-                <div key={vol.label} className="sysinfo__vol">
+                <div key={vol.id} className="sysinfo__vol">
                   <div className="sysinfo__vol-header">
-                    <span><HardDrive size={13} /> {vol.label}</span>
-                    <span>{vol.used} / {vol.total} GB ({pct}%)</span>
+                    <span><HardDrive size={13} /> {vol.name} — {vol.mountPoint}</span>
+                    <span style={{ color: vol.status !== 'normal' ? '#f59e0b' : 'var(--text-secondary)' }}>
+                      {vol.usedGB} / {vol.totalGB} GB ({pct}%)
+                      {vol.status !== 'normal' && ` ⚠ ${vol.status}`}
+                    </span>
                   </div>
                   <div className="sysinfo__vol-bar">
                     <div className="sysinfo__vol-fill" style={{
                       width: `${pct}%`,
-                      background: pct > 85 ? '#ef4444' : pct > 65 ? '#f59e0b' : vol.color,
+                      background: pct > 85 ? '#ef4444' : pct > 65 ? '#f59e0b' : '#3b82f6',
                     }} />
                   </div>
                   <div className="sysinfo__vol-stats">
-                    <span>Libre: {vol.total - vol.used} GB</span>
-                    <span>Sistema de archivos: ext4</span>
+                    <span>Libre: {vol.totalGB - vol.usedGB} GB · {vol.raidType} · {vol.fsType}</span>
+                    <span>{volDisks.length} disco{volDisks.length !== 1 ? 's' : ''}</span>
                   </div>
                 </div>
               );

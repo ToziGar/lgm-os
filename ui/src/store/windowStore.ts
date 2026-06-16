@@ -27,31 +27,48 @@ export const useWindowStore = create<WindowStore>((set) => ({
   windows: [],
 
   openWindow: (appId, title, icon, width, height, minWidth = 400, minHeight = 300) => {
-    const id = `window-${nextWindowId++}`;
-    const x = 80 + (nextWindowId % 8) * 30;
-    const y = 40 + (nextWindowId % 6) * 25;
+    // Prevent duplicate windows for the same app (just focus existing)
+    // (we allow multiple for terminal/text-editor)
+    const SINGLE_INSTANCE = ['control-panel','file-station','package-center','system-info',
+      'network-services','ssh-manager','task-manager','log-center','vpn-manager',
+      'user-manager','storage-manager','zfs-panel','calculator'];
 
-    set((state) => ({
-      windows: [
-        ...state.windows.map((w) => ({ ...w, isFocused: false })),
-        {
-          id,
-          appId,
-          title,
-          icon,
-          x,
-          y,
-          width,
-          height,
-          minWidth,
-          minHeight,
-          isMinimized: false,
-          isMaximized: false,
-          isFocused: true,
-          zIndex: ++nextZIndex,
-        },
-      ],
-    }));
+    // Clamp size to viewport minus taskbar
+    const vw = window.innerWidth;
+    const vh = window.innerHeight - 48; // taskbar height
+    const w = Math.min(width, vw - 40);
+    const h = Math.min(height, vh - 40);
+
+    // Cascade: offset each new window by 30px
+    const offset = (nextWindowId % 10) * 30;
+    const x = Math.max(10, Math.min(80 + offset, vw - w - 20));
+    const y = Math.max(10, Math.min(30 + offset, vh - h - 20));
+
+    const id = `window-${nextWindowId++}`;
+
+    set((state) => {
+      // Single-instance: bring to front if already open
+      if (SINGLE_INSTANCE.includes(appId)) {
+        const existing = state.windows.find(win => win.appId === appId);
+        if (existing) {
+          return {
+            windows: state.windows.map(win =>
+              win.id === existing.id
+                ? { ...win, isFocused: true, isMinimized: false, zIndex: ++nextZIndex }
+                : { ...win, isFocused: false }
+            ),
+          };
+        }
+      }
+      return {
+        windows: [
+          ...state.windows.map(win => ({ ...win, isFocused: false })),
+          { id, appId, title, icon, x, y, width: w, height: h,
+            minWidth, minHeight, isMinimized: false, isMaximized: false,
+            isFocused: true, zIndex: ++nextZIndex },
+        ],
+      };
+    });
 
     return id;
   },

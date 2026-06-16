@@ -5,7 +5,73 @@
   overflow: hidden;
 }
 
-/* Network services mini-cards */
+/* Wide nav */
+.cp__nav--wide {
+  width: 210px !important;
+}
+
+/* Nav groups */
+.cp__nav-group {
+  margin-bottom: 4px;
+  padding: 0 4px;
+}
+.cp__nav-group-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  padding: 8px 8px 4px;
+}
+
+/* Full-height content for embedded apps */
+.cp__content--full {
+  padding: 0 !important;
+  overflow: hidden;
+}
+.cp__content--full > * {
+  height: 100%;
+  min-height: 0;
+}
+
+/* Info health bar */
+.cp__info-health {
+  display: flex;
+  gap: 24px;
+  padding: 12px 14px;
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+.cp__info-health-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.cp__info-health-item strong {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.cp__info-health-dots {
+  display: flex;
+  gap: 5px;
+}
+.cp__info-hdot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 10px;
+}
+.cp__info-hdot--ok   { background: rgba(0,184,124,0.12); color: #00b87c; }
+.cp__info-hdot--warn { background: rgba(245,158,11,0.12); color: #f59e0b; }
+.cp__info-hdot--err  { background: rgba(239,68,68,0.12);  color: #ef4444; }
+
 .cp__net-services {
   background: var(--bg-sidebar);
   border: 1px solid var(--border-color);

@@ -95,7 +95,7 @@ let notifId = 1;
 export const useSystemStore = create<SystemStore>((set, get) => ({
   isLoggedIn: false,
   user: null,
-  theme: 'light',
+  theme: (localStorage.getItem('lgmos-theme') as Theme) || 'light',
   notifications: [],
   showLaunchPad: false,
   showNotifications: false,
@@ -148,7 +148,11 @@ export const useSystemStore = create<SystemStore>((set, get) => ({
   }),
 
   toggleTheme: () =>
-    set((state) => ({ theme: state.theme === 'light' ? 'dark' : 'light' })),
+    set((state) => {
+      const newTheme = state.theme === 'light' ? 'dark' : 'light';
+      localStorage.setItem('lgmos-theme', newTheme);
+      return { theme: newTheme };
+    }),
 
   addNotification: (title, message, type = 'info') => {
     // Sanitize notification content

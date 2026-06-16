@@ -79,17 +79,18 @@ export function IconTerminal({ size = 32, style }: IconProps) {
       <rect width="64" height="64" rx="14" fill="url(#term-bg)"/>
       <defs>
         <linearGradient id="term-bg" x1="0" y1="0" x2="64" y2="64">
-          <stop stopColor="#1e293b"/>
-          <stop offset="1" stopColor="#0f172a"/>
+          <stop stopColor="#1e3a5f"/>
+          <stop offset="0.5" stopColor="#0d2b4e"/>
+          <stop offset="1" stopColor="#051525"/>
         </linearGradient>
       </defs>
-      <rect x="10" y="14" width="44" height="36" rx="4" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.1)" strokeWidth="1"/>
+      <rect x="10" y="14" width="44" height="36" rx="4" fill="rgba(255,255,255,0.06)" stroke="rgba(100,200,255,0.2)" strokeWidth="1"/>
       <circle cx="18" cy="21" r="2.5" fill="#ff5f57"/>
       <circle cx="25" cy="21" r="2.5" fill="#ffbd2e"/>
       <circle cx="32" cy="21" r="2.5" fill="#28c840"/>
       <path d="M14 28h36" stroke="rgba(255,255,255,0.08)" strokeWidth="1"/>
       <path d="M16 34l5-2.5-5-2.5" stroke="#3fb950" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-      <rect x="24" y="32" width="10" height="2" rx="1" fill="rgba(255,255,255,0.4)"/>
+      <rect x="24" y="32" width="10" height="2" rx="1" fill="rgba(100,200,255,0.6)"/>
       <rect x="16" y="39" width="18" height="2" rx="1" fill="rgba(255,255,255,0.2)"/>
     </svg>
   );
@@ -244,11 +245,11 @@ export function IconTaskManager({ size = 32, style }: IconProps) {
       <rect width="64" height="64" rx="14" fill="url(#tm-bg)"/>
       <defs>
         <linearGradient id="tm-bg" x1="0" y1="0" x2="64" y2="64">
-          <stop stopColor="#0f172a"/>
-          <stop offset="1" stopColor="#1e293b"/>
+          <stop stopColor="#0f2744"/>
+          <stop offset="1" stopColor="#071830"/>
         </linearGradient>
       </defs>
-      <rect x="10" y="14" width="44" height="36" rx="4" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.1)" strokeWidth="1"/>
+      <rect x="10" y="14" width="44" height="36" rx="4" fill="rgba(255,255,255,0.04)" stroke="rgba(100,180,255,0.15)" strokeWidth="1"/>
       <polyline points="14,40 20,30 26,34 32,22 38,28 44,20 50,26" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
       <polyline points="14,44 20,40 26,42 32,36 38,38 44,32 50,34" fill="none" stroke="#3b82f6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.7"/>
     </svg>
@@ -319,6 +320,34 @@ export function IconStorageManager({ size = 32, style }: IconProps) {
   );
 }
 
+/* ── ZFS Panel ── */
+export function IconZFSPanel({ size = 32, style }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 64 64" fill="none" style={style}>
+      <rect width="64" height="64" rx="14" fill="url(#zfs-bg)"/>
+      <defs>
+        <linearGradient id="zfs-bg" x1="0" y1="0" x2="64" y2="64">
+          <stop stopColor="#0f172a"/>
+          <stop offset="1" stopColor="#1e293b"/>
+        </linearGradient>
+      </defs>
+      {/* Pool circles */}
+      <circle cx="32" cy="18" r="9" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="2"/>
+      <circle cx="18" cy="42" r="9" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2"/>
+      <circle cx="46" cy="42" r="9" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2"/>
+      {/* Connectors */}
+      <line x1="32" y1="27" x2="18" y2="33" stroke="rgba(45,123,255,0.7)" strokeWidth="1.5"/>
+      <line x1="32" y1="27" x2="46" y2="33" stroke="rgba(45,123,255,0.7)" strokeWidth="1.5"/>
+      {/* Center dot */}
+      <circle cx="32" cy="18" r="3" fill="#3b82f6"/>
+      <circle cx="18" cy="42" r="3" fill="rgba(255,255,255,0.4)"/>
+      <circle cx="46" cy="42" r="3" fill="rgba(255,255,255,0.4)"/>
+      {/* ZFS label */}
+      <text x="32" y="58" textAnchor="middle" fontSize="7" fontWeight="800" fontFamily="monospace" fill="rgba(255,255,255,0.5)" letterSpacing="1">ZFS</text>
+    </svg>
+  );
+}
+
 /* ── App icon map — accepts id → returns React node ── */
 const ICON_MAP: Record<string, (props: IconProps) => JSX.Element> = {
   'file-station':      IconFileStation,
@@ -337,6 +366,7 @@ const ICON_MAP: Record<string, (props: IconProps) => JSX.Element> = {
   'log-center':        IconLogCenter,
   'user-manager':      IconUserManager,
   'storage-manager':   IconStorageManager,
+  'zfs-panel':         IconZFSPanel,
 };
 
 export function AppIconSVG({ appId, size = 32, style }: { appId: string; size?: number; style?: CSSProperties }) {

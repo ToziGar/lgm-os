@@ -406,7 +406,7 @@ export function StorageManager() {
                 <FolderRow
                   key={f.id}
                   folder={f}
-                  onEdit={() => {}}
+                  onEdit={() => addNotification('Editar carpeta', `Edición avanzada de "${f.name}" próximamente`, 'info')}
                   onDelete={() => handleDeleteFolder(f)}
                 />
               ))}

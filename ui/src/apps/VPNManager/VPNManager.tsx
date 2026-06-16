@@ -29,16 +29,12 @@ const INITIAL_PROFILES: VPNProfile[] = [
   },
   {
     id: '2', name: 'VPN Oficina',    protocol: 'WireGuard', server: '45.76.10.22',       port: 51820,
-    status: 'connected',    location: '🏢 Remoto',    bytesIn: 1024*1024*142, bytesOut: 1024*1024*38,
-    lastConnected: '16/06/2025 12:45', duration: '01:47:32',
+    status: 'disconnected',    location: '🏢 Remoto',    bytesIn: 0, bytesOut: 0,
+    lastConnected: '15/06/2025 12:45',
   },
   {
     id: '3', name: 'OpenVPN EU',     protocol: 'OpenVPN',   server: 'eu1.vpnserver.com', port: 1194,
     status: 'disconnected', location: '🇪🇺 Europa',   bytesIn: 0,    bytesOut: 0,
-  },
-  {
-    id: '4', name: 'Acceso Remoto',  protocol: 'IKEv2',     server: 'ike.lgmos.net',    port: 500,
-    status: 'error',        location: '🌍 Internet',  bytesIn: 0,    bytesOut: 0,
   },
 ];
 

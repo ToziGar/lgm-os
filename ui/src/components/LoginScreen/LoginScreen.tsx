@@ -26,9 +26,9 @@ export function LoginScreen() {
     setLoading(true);
     // Small delay for UX (prevents instant feedback that leaks timing)
     await new Promise((r) => setTimeout(r, 400 + Math.random() * 300));
-    login(username, password);
+    const ok = login(username, password);
     setLoading(false);
-    if (loginError) setPassword('');
+    if (!ok) setPassword('');
   };
 
   return (

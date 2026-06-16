@@ -12,45 +12,95 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse at 15% 85%, rgba(45, 123, 255, 0.3) 0%, transparent 55%),
-    radial-gradient(ellipse at 85% 15%, rgba(0, 180, 216, 0.2) 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 50%, rgba(21, 87, 204, 0.15) 0%, transparent 70%),
-    linear-gradient(145deg, #060a18 0%, #0d1528 45%, #091222 100%);
+    radial-gradient(ellipse 80% 60% at 70% 20%, rgba(45,100,255,0.22) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 50% at 20% 80%, rgba(0,120,220,0.18) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 40% at 50% 50%, rgba(20,50,130,0.15) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 30% at 85% 65%, rgba(80,20,180,0.12) 0%, transparent 55%),
+    linear-gradient(155deg, #020614 0%, #040c22 25%, #060e2e 55%, #030816 100%);
 }
 
 .login__bg::before {
   content: '';
   position: absolute;
   inset: 0;
-  background-image:
-    radial-gradient(circle at 1px 1px, rgba(255,255,255,0.03) 1px, transparent 0);
-  background-size: 36px 36px;
+  /* star field */
+  background:
+    radial-gradient(1px 1px at 12% 18%, rgba(255,255,255,0.5) 0%, transparent 100%),
+    radial-gradient(1px 1px at 78% 8%, rgba(255,255,255,0.45) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 55% 35%, rgba(200,220,255,0.55) 0%, transparent 100%),
+    radial-gradient(1px 1px at 33% 65%, rgba(255,255,255,0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 88% 55%, rgba(255,255,255,0.35) 0%, transparent 100%),
+    radial-gradient(2px 2px at 42% 82%, rgba(180,210,255,0.6) 0%, transparent 100%),
+    radial-gradient(1px 1px at 67% 72%, rgba(255,255,255,0.3) 0%, transparent 100%),
+    radial-gradient(1px 1px at 22% 44%, rgba(255,255,255,0.38) 0%, transparent 100%),
+    radial-gradient(1px 1px at 91% 30%, rgba(255,255,255,0.32) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 48% 12%, rgba(200,220,255,0.5) 0%, transparent 100%);
+  pointer-events: none;
 }
 
 .login__bg::after {
   content: '';
   position: absolute;
-  width: 500px;
-  height: 500px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(45, 123, 255, 0.08) 0%, transparent 70%);
-  top: -100px;
-  right: -100px;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 70% 40% at 30% 70%, rgba(45,123,255,0.09) 0%, transparent 100%),
+    radial-gradient(ellipse 50% 30% at 75% 25%, rgba(0,180,255,0.07) 0%, transparent 100%);
+  animation: loginBgPulse 12s ease-in-out infinite alternate;
   pointer-events: none;
+}
+
+@keyframes loginBgPulse {
+  0%   { opacity: 0.7; transform: scale(1); }
+  100% { opacity: 1;   transform: scale(1.03); }
+}
+
+/* Animated light streaks */
+.login::before {
+  content: '';
+  position: absolute;
+  width: 600px; height: 1px;
+  top: 35%;
+  left: -200px;
+  background: linear-gradient(90deg, transparent 0%, rgba(45,123,255,0.15) 40%, rgba(0,180,255,0.08) 70%, transparent 100%);
+  transform: rotate(-25deg);
+  animation: streakMove 8s ease-in-out infinite alternate;
+  pointer-events: none;
+  z-index: 0;
+}
+.login::after {
+  content: '';
+  position: absolute;
+  width: 400px; height: 1px;
+  bottom: 30%;
+  right: -100px;
+  background: linear-gradient(90deg, transparent 0%, rgba(80,40,255,0.12) 40%, rgba(45,123,255,0.06) 70%, transparent 100%);
+  transform: rotate(-15deg);
+  animation: streakMove 11s ease-in-out infinite alternate-reverse;
+  pointer-events: none;
+  z-index: 0;
+}
+@keyframes streakMove {
+  0%   { transform: rotate(-25deg) translateX(-60px) scaleX(0.8); opacity: 0.6; }
+  100% { transform: rotate(-25deg) translateX(60px)  scaleX(1.2); opacity: 1; }
 }
 
 .login__card {
   position: relative;
-  background: rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.055);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-top-color: rgba(255,255,255,0.18);
+  border-radius: 20px;
   padding: 36px 40px 32px;
   width: 100%;
   max-width: 400px;
-  box-shadow: 0 32px 80px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.04);
-  animation: loginFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow:
+    0 40px 100px rgba(0,0,0,0.65),
+    0 8px 32px rgba(0,0,0,0.45),
+    inset 0 1px 0 rgba(255,255,255,0.12),
+    inset 0 -1px 0 rgba(0,0,0,0.1);
+  animation: loginFadeIn 0.45s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes loginFadeIn {
