@@ -29,7 +29,7 @@ const USER_DB: Record<string, {
   displayName: string;
   isAdmin: boolean;
   groups: string[];
-}> = (⁠() => {
+}> = (() => {
   const makeEntry = (pw: string, displayName: string, isAdmin: boolean, groups: string[]) => {
     const salt = djb2Hash(displayName + 'lgmos2025');
     return { salt, hash: hashPassword(pw, salt), displayName, isAdmin, groups };

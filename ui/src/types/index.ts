@@ -89,7 +89,112 @@ export interface Group {
 export type DiskStatus = 'healthy' | 'warning' | 'failing' | 'failed' | 'unknown';
 export type VolumeStatus = 'normal' | 'degraded' | 'rebuilding' | 'crashed' | 'readonly';
 export type RAIDType = 'basic' | 'RAID 0' | 'RAID 1' | 'RAID 5' | 'RAID 6' | 'RAID 10' | 'SHR';
-export type FSType = 'ext4' | 'btrfs' | 'xfs' | 'ntfs' | 'fat32';
+export type FSType = 'ext4' | 'btrfs' | 'xfs' | 'ntfs' | 'fat32' | 'zfs';
+
+/* ─── ZFS types ─── */
+export type ZFSPoolStatus  = 'ONLINE' | 'DEGRADED' | 'FAULTED' | 'OFFLINE' | 'UNAVAIL' | 'REMOVED' | 'SUSPENDED';
+export type ZFSVdevType    = 'disk' | 'mirror' | 'raidz' | 'raidz2' | 'raidz3' | 'spare' | 'log' | 'cache' | 'special';
+export type ZFSCompression = 'off' | 'lz4' | 'zstd' | 'zstd-1' | 'zstd-3' | 'zstd-9' | 'gzip' | 'gzip-1' | 'gzip-9' | 'lzjb' | 'zle';
+export type ZFSChecksum    = 'on' | 'off' | 'sha256' | 'sha512' | 'skein' | 'edonr' | 'blake3';
+export type ZFSAtime       = 'on' | 'off' | 'relatime';
+export type ZFSRecordsize  = '512' | '1K' | '2K' | '4K' | '8K' | '16K' | '32K' | '64K' | '128K' | '256K' | '512K' | '1M';
+
+export interface ZFSVdev {
+  id: string;
+  type: ZFSVdevType;
+  diskIds: string[];           // PhysicalDisk IDs
+  status: ZFSPoolStatus;
+  readErrors:  number;
+  writeErrors: number;
+  checksumErrors: number;
+}
+
+export interface ZFSPool {
+  id: string;
+  name: string;                // e.g. "tank", "data", "rpool"
+  status: ZFSPoolStatus;
+  vdevs: ZFSVdev[];
+  totalGB: number;
+  usedGB: number;
+  freeGB: number;
+  dedupRatio: number;          // e.g. 1.23
+  fragmentation: number;       // 0-100%
+  allocatable: number;         // 0-100%
+  guid: string;
+  createdAt: string;
+  feature_async_destroy: boolean;
+  feature_encryption: boolean;
+  feature_lz4_compress: boolean;
+  feature_spacemap_v2: boolean;
+  feature_zstd_compress: boolean;
+  feature_device_removal: boolean;
+  scrubStatus?: 'idle' | 'scrubbing' | 'scheduled';
+  scrubProgress?: number;      // 0-100
+  lastScrub?: string;
+}
+
+export interface ZFSDataset {
+  id: string;
+  poolId: string;
+  name: string;                // full path e.g. "tank/data/documents"
+  type: 'filesystem' | 'volume' | 'snapshot' | 'bookmark';
+  mountPoint?: string;         // only for filesystems
+  usedGB: number;
+  availableGB: number;
+  referencedGB: number;
+  compression: ZFSCompression;
+  checksum: ZFSChecksum;
+  atime: ZFSAtime;
+  recordsize: ZFSRecordsize;
+  quota?: number;              // GB, 0=none
+  reservation?: number;        // GB, 0=none
+  encryption: boolean;
+  encrypted?: boolean;
+  keyStatus?: 'available' | 'unavailable';
+  sharenfs?: string;           // NFS share config
+  sharesmb?: string;           // SMB share config
+  dedup: boolean;
+  readonly: boolean;
+  origin?: string;             // snapshot origin for clones
+  clones?: string[];           // dataset IDs that are clones of this snapshot
+  createdAt: string;
+  description?: string;
+}
+
+export interface ZFSSnapshot {
+  id: string;
+  poolId: string;
+  datasetName: string;         // parent dataset full name
+  name: string;                // snapshot name e.g. "auto-2025-01-01"
+  fullName: string;            // e.g. "tank/data@auto-2025-01-01"
+  usedGB: number;
+  referencedGB: number;
+  createdAt: string;
+  description?: string;
+  isAutomatic: boolean;
+  retentionPolicy?: string;    // e.g. "keep 7 daily"
+}
+
+export interface ZFSSchedule {
+  id: string;
+  poolId: string;
+  datasetPattern: string;      // glob, e.g. "tank/**"
+  frequency: 'hourly' | 'daily' | 'weekly' | 'monthly';
+  keepCount: number;
+  enabled: boolean;
+  lastRun?: string;
+  nextRun?: string;
+}
+
+export interface ZFSScrubStatus {
+  poolId: string;
+  status: 'none' | 'running' | 'completed' | 'canceled';
+  progress?: number;
+  startedAt?: string;
+  duration?: string;
+  repaired?: number;
+  errors?: number;
+}
 
 export interface PhysicalDisk {
   id: string;

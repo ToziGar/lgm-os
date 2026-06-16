@@ -6,6 +6,7 @@ import {
 import { useSystemStore } from '../../store/systemStore';
 import { useWindowStore } from '../../store/windowStore';
 import { useUserStore } from '../../store/userStore';
+import { useStorageStore } from '../../store/storageStore';
 import './ControlPanel.css';
 
 type Section =
@@ -137,35 +138,46 @@ function NetworkSection() {
 }
 
 function StorageSection() {
-  const volumes = [
-    { name: 'Disco Principal', total: 1000, used: 380, label: '/dev/sda' },
-    { name: 'Disco Secundario', total: 500, used: 120, label: '/dev/sdb' },
-  ];
+  const { openWindow } = useWindowStore();
+  const { volumes, getDiskHealthSummary } = useStorageStore();
+  const health = getDiskHealthSummary();
+
   return (
     <div className="cp__section">
       <h3 className="cp__section-title">Almacenamiento</h3>
+
+      {/* Health summary */}
+      <div className="cp__storage-health">
+        <div className="cp__health-item cp__health-item--ok"><span className="cp__health-dot cp__health-dot--ok"/>{health.healthy} disco{health.healthy !== 1 ? 's' : ''} OK</div>
+        {health.warning > 0 && <div className="cp__health-item cp__health-item--warn"><span className="cp__health-dot cp__health-dot--warn"/>{health.warning} con aviso</div>}
+        {health.failing > 0 && <div className="cp__health-item cp__health-item--err"><span className="cp__health-dot cp__health-dot--err"/>{health.failing} fallo</div>}
+      </div>
+
       {volumes.map((v) => {
-        const pct = Math.round((v.used / v.total) * 100);
+        const pct = Math.round((v.usedGB / v.totalGB) * 100);
         return (
-          <div key={v.name} className="cp__vol">
+          <div key={v.id} className="cp__vol">
             <div className="cp__vol-header">
               <span className="cp__vol-name">
                 <HardDrive size={14} /> {v.name}
+                {v.status !== 'normal' && <span style={{ color: '#f59e0b', fontSize: 11, marginLeft: 4 }}>({v.status})</span>}
               </span>
-              <span className="cp__vol-label">{v.label}</span>
+              <span className="cp__vol-label">{v.mountPoint} · {v.raidType}</span>
             </div>
             <div className="cp__progress-wrap">
               <div className="cp__progress">
-                <div
-                  className="cp__progress-bar"
-                  style={{ width: `${pct}%`, background: pct > 80 ? '#ef4444' : pct > 60 ? '#f59e0b' : '#10b981' }}
-                />
+                <div className="cp__progress-bar" style={{ width: `${pct}%`, background: pct > 80 ? '#ef4444' : pct > 60 ? '#f59e0b' : '#10b981' }}/>
               </div>
-              <span className="cp__vol-info">{v.used} GB / {v.total} GB ({pct}%)</span>
+              <span className="cp__vol-info">{v.usedGB} / {v.totalGB} GB ({pct}%)</span>
             </div>
           </div>
         );
       })}
+
+      <button className="cp__save-btn" style={{ marginTop: 8 }}
+        onClick={() => openWindow('storage-manager', 'Almacenamiento', '💿', 1040, 660, 780, 500)}>
+        → Abrir Administrador de almacenamiento
+      </button>
     </div>
   );
 }
