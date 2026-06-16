@@ -13,16 +13,20 @@ import { Terminal } from './apps/Terminal/Terminal';
 import { TextEditor } from './apps/TextEditor/TextEditor';
 import { SystemInfo } from './apps/SystemInfo/SystemInfo';
 import { Calculator } from './apps/Calculator/Calculator';
+import { NetworkServices } from './apps/NetworkServices/NetworkServices';
+import { SSHManager } from './apps/SSHManager/SSHManager';
 
 function renderApp(appId: string) {
   switch (appId) {
-    case 'file-station':   return <FileStation />;
-    case 'control-panel':  return <ControlPanel />;
-    case 'package-center': return <PackageCenter />;
-    case 'terminal':       return <Terminal />;
-    case 'text-editor':    return <TextEditor />;
-    case 'system-info':    return <SystemInfo />;
-    case 'calculator':     return <Calculator />;
+    case 'file-station':      return <FileStation />;
+    case 'control-panel':     return <ControlPanel />;
+    case 'package-center':    return <PackageCenter />;
+    case 'terminal':          return <Terminal />;
+    case 'text-editor':       return <TextEditor />;
+    case 'system-info':       return <SystemInfo />;
+    case 'calculator':        return <Calculator />;
+    case 'network-services':  return <NetworkServices />;
+    case 'ssh-manager':       return <SSHManager />;
     default: return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-secondary)' }}>
         Aplicación no encontrada

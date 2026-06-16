@@ -3,6 +3,7 @@ import { X, Search } from 'lucide-react';
 import { useSystemStore } from '../../store/systemStore';
 import { useWindowStore } from '../../store/windowStore';
 import { APPS } from '../../apps/appRegistry';
+import { AppIconSVG } from '../AppIcon/AppIcon';
 import './LaunchPad.css';
 
 export function LaunchPad() {
@@ -60,12 +61,14 @@ export function LaunchPad() {
               className="launchpad__item"
               onClick={() => launch(app.id)}
             >
-              <span
-                className="launchpad__item-icon"
-                style={{ background: app.color }}
-              >
-                {app.icon}
-              </span>
+              <div className="launchpad__item-icon" style={{ background: app.color }}>
+                <AppIconSVG appId={app.id} size={34} />
+                {!['file-station','control-panel','package-center','terminal','text-editor',
+                    'system-info','calculator','network-services','ssh-manager',
+                    'shared-folders','vpn'].includes(app.id) && (
+                  <span style={{ fontSize: 22 }}>{app.icon}</span>
+                )}
+              </div>
               <span className="launchpad__item-name">{app.name}</span>
               <span className="launchpad__item-desc">{app.description}</span>
             </button>

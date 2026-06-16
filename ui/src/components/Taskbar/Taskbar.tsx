@@ -4,8 +4,7 @@ import {
 } from 'lucide-react';
 import { useSystemStore } from '../../store/systemStore';
 import { useWindowStore } from '../../store/windowStore';
-import { APPS } from '../../apps/appRegistry';
-import './Taskbar.css';
+import { APPS } from '../../apps/appRegistry';import { AppIconSVG } from '../AppIcon/AppIcon';import './Taskbar.css';
 
 function Clock() {
   const [time, setTime] = useState(new Date());
@@ -90,8 +89,13 @@ export function Taskbar() {
               onClick={() => handleAppClick(app.id, appWindows[0]?.id)}
               title={app.name}
             >
-              <span className="taskbar__app-icon" style={{ background: app.color }}>
-                {app.icon}
+              <span className="taskbar__app-icon" style={{ background: app.color, overflow: 'hidden', padding: 0 }}>
+                <AppIconSVG appId={app.id} size={20} />
+                {!['file-station','control-panel','package-center','terminal','text-editor',
+                    'system-info','calculator','network-services','ssh-manager',
+                    'shared-folders','vpn'].includes(app.id) && (
+                  <span style={{ fontSize: 12 }}>{app.icon}</span>
+                )}
               </span>
               <span className="taskbar__app-name">{app.name}</span>
               {appWindows.length > 1 && (

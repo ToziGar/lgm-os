@@ -1,6 +1,7 @@
 import { Rnd } from 'react-rnd';
 import { X, Minus, Square, Maximize2 } from 'lucide-react';
 import { useWindowStore } from '../../store/windowStore';
+import { AppIconSVG } from '../AppIcon/AppIcon';
 import type { WindowState } from '../../types';
 import './Window.css';
 
@@ -46,7 +47,12 @@ export function AppWindow({ window: win, children }: Props) {
         </button>
       </div>
       <div className="window__titlebar-left">
-        <span className="window__icon">{win.icon}</span>
+        <span className="window__icon">
+          <AppIconSVG appId={win.appId} size={16} />
+          {!['file-station','control-panel','package-center','terminal','text-editor',
+              'system-info','calculator','network-services','ssh-manager',
+              'shared-folders','vpn'].includes(win.appId) && win.icon}
+        </span>
         <span className="window__title">{win.title}</span>
       </div>
     </div>

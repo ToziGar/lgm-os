@@ -5,6 +5,61 @@
   overflow: hidden;
 }
 
+/* Network services mini-cards */
+.cp__net-services {
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 4px;
+}
+.cp__net-services-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+.cp__net-services-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+.cp__net-svc {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 8px;
+  background: var(--bg-window);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 11px;
+  color: var(--text-muted);
+  transition: border-color var(--transition-fast);
+}
+.cp__net-svc--on { border-color: rgba(45,123,255,0.2); color: var(--text-primary); }
+.cp__net-svc-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.cp__net-svc-name { font-weight: 500; font-size: 11px; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cp__net-svc-port { font-family: monospace; font-size: 10px; color: var(--text-muted); }
+
+.cp__link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 0;
+  transition: opacity var(--transition-fast);
+}
+.cp__link-btn:hover { opacity: 0.75; }
+
 /* Nav */
 .cp__nav {
   width: 185px;

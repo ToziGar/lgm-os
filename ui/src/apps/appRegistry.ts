@@ -78,6 +78,28 @@ export const APPS: AppDefinition[] = [
     minHeight: 400,
     color: '#8b5cf6',
   },
+  {
+    id: 'network-services',
+    name: 'Servicios de Red',
+    icon: '🌐',
+    description: 'SMB, NFS, FTP, SFTP, WebDAV, Rsync',
+    defaultWidth: 960,
+    defaultHeight: 640,
+    minWidth: 700,
+    minHeight: 480,
+    color: '#0ea5e9',
+  },
+  {
+    id: 'ssh-manager',
+    name: 'SSH Manager',
+    icon: '🖥️',
+    description: 'Gestor de conexiones SSH con terminal integrado',
+    defaultWidth: 920,
+    defaultHeight: 600,
+    minWidth: 680,
+    minHeight: 440,
+    color: '#374151',
+  },
 ];
 
 export const getApp = (id: string): AppDefinition | undefined =>

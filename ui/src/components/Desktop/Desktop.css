@@ -6,6 +6,164 @@
   user-select: none;
 }
 
+/* Dot-grid overlay */
+.desktop__grid-svg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Glowing orbs */
+.desktop__orb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  filter: blur(80px);
+  animation: orbFloat 12s ease-in-out infinite;
+}
+.desktop__orb--1 {
+  width: 500px; height: 500px;
+  background: rgba(45, 123, 255, 0.12);
+  top: -100px; right: -100px;
+  animation-delay: 0s;
+}
+.desktop__orb--2 {
+  width: 400px; height: 400px;
+  background: rgba(0, 180, 216, 0.08);
+  bottom: 80px; left: -80px;
+  animation-delay: -6s;
+}
+@keyframes orbFloat {
+  0%,100% { transform: translateY(0) scale(1); }
+  50%      { transform: translateY(-30px) scale(1.05); }
+}
+
+/* Icon grid */
+.desktop__icons {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  z-index: 2;
+  max-height: calc(100% - 28px);
+  flex-wrap: wrap;
+  align-content: flex-start;
+}
+
+.desktop__icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 5px 6px;
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
+  width: 76px;
+  outline: none;
+  position: relative;
+}
+.desktop__icon:hover {
+  background: rgba(255,255,255,0.1);
+  border-color: rgba(255,255,255,0.12);
+  transform: translateY(-1px);
+}
+.desktop__icon:active { transform: scale(0.94); }
+
+.desktop__icon-wrap {
+  width: 48px; height: 48px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform var(--transition-fast);
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4));
+}
+.desktop__icon:hover .desktop__icon-wrap {
+  transform: scale(1.08) translateY(-2px);
+  filter: drop-shadow(0 8px 16px rgba(0,0,0,0.5));
+}
+
+.desktop__icon-emoji {
+  width: 48px; height: 48px;
+  border-radius: 11px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+}
+
+.desktop__icon-label {
+  font-size: 10.5px;
+  font-weight: 500;
+  color: #ffffff;
+  text-shadow: 0 1px 6px rgba(0,0,0,0.9), 0 0 12px rgba(0,0,0,0.5);
+  text-align: center;
+  line-height: 1.25;
+  max-width: 70px;
+  word-break: break-word;
+}
+
+/* Context menu */
+.desktop__context {
+  position: fixed;
+  background: rgba(18, 20, 32, 0.97);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 11px;
+  padding: 5px;
+  min-width: 210px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3);
+  z-index: 9999;
+  animation: ctxIn 0.1s cubic-bezier(0.16,1,0.3,1);
+}
+@keyframes ctxIn {
+  from { opacity: 0; transform: scale(0.94) translateY(-4px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.desktop__context-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 7px 11px;
+  background: none; border: none; border-radius: 6px;
+  font-size: 13px; color: rgba(255,255,255,0.82);
+  cursor: pointer; font-family: inherit;
+  transition: background var(--transition-fast);
+  text-align: left;
+}
+.desktop__context-item:hover { background: rgba(255,255,255,0.09); color: #fff; }
+.desktop__context-sep { height: 1px; background: rgba(255,255,255,0.07); margin: 3px 6px; }
+
+/* Wallpaper picker submenu */
+.desktop__wp-picker {
+  border-top: 1px solid rgba(255,255,255,0.06);
+  padding-top: 4px;
+  margin-top: 2px;
+}
+.desktop__wp-item {
+  display: flex; align-items: center; gap: 9px;
+  width: 100%; padding: 6px 11px;
+  background: none; border: none; border-radius: 6px;
+  font-size: 12px; color: rgba(255,255,255,0.72);
+  cursor: pointer; font-family: inherit;
+  transition: background var(--transition-fast);
+  text-align: left;
+}
+.desktop__wp-item:hover { background: rgba(255,255,255,0.08); color: #fff; }
+.desktop__wp-item--active { color: #fff; }
+.desktop__wp-preview {
+  width: 40px; height: 24px; border-radius: 5px; flex-shrink: 0;
+  border: 1px solid rgba(255,255,255,0.15);
+}
+
 .desktop__overlay {
   position: absolute;
   inset: 0;

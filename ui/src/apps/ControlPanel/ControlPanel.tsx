@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import {
   Network, HardDrive, Shield, Users, Info, Bell, Palette, Server,
+  Globe, Lock, RefreshCw, CheckCircle2, XCircle,
 } from 'lucide-react';
 import { useSystemStore } from '../../store/systemStore';
+import { useWindowStore } from '../../store/windowStore';
 import './ControlPanel.css';
 
 type Section =
@@ -58,9 +60,52 @@ function SysInfo() {
 
 function NetworkSection() {
   const [dhcp, setDhcp] = useState(true);
+  const { addNotification } = useSystemStore();
+  const { openWindow } = useWindowStore();
+
+  const services = [
+    { name: 'SMB / CIFS',  port: 445,  active: true,  color: '#0ea5e9' },
+    { name: 'SFTP',        port: 22,   active: true,  color: '#6366f1' },
+    { name: 'NFS v4',      port: 2049, active: false, color: '#10b981' },
+    { name: 'FTP',         port: 21,   active: false, color: '#f59e0b' },
+    { name: 'WebDAV',      port: 5005, active: false, color: '#ec4899' },
+    { name: 'Rsync',       port: 873,  active: false, color: '#14b8a6' },
+  ];
+
+  const goToNetworkServices = () => {
+    const APPS = (window as any).__APPS__;
+    openWindow('network-services', 'Servicios de Red', '🌐', 960, 640, 700, 480);
+  };
+
+  const save = () => addNotification('Red guardada', 'Configuración de red aplicada', 'success');
+
   return (
     <div className="cp__section">
       <h3 className="cp__section-title">Configuración de Red</h3>
+
+      {/* Service status mini-cards */}
+      <div className="cp__net-services">
+        <div className="cp__net-services-header">
+          <span>Servicios activos</span>
+          <button className="cp__link-btn" onClick={goToNetworkServices}>
+            <Globe size={12}/> Gestionar servicios →
+          </button>
+        </div>
+        <div className="cp__net-services-grid">
+          {services.map(svc => (
+            <div key={svc.name} className={`cp__net-svc ${svc.active ? 'cp__net-svc--on' : ''}`}>
+              <div className="cp__net-svc-dot" style={{ background: svc.active ? svc.color : 'var(--border-color-strong)' }}/>
+              <span className="cp__net-svc-name">{svc.name}</span>
+              <span className="cp__net-svc-port">:{svc.port}</span>
+              {svc.active
+                ? <CheckCircle2 size={12} style={{ color: '#00b87c', marginLeft: 'auto' }}/>
+                : <XCircle size={12} style={{ color: 'var(--text-muted)', marginLeft: 'auto' }}/>
+              }
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div className="cp__form">
         <div className="cp__form-row">
           <label className="cp__label">Interfaz</label>
@@ -78,29 +123,14 @@ function NetworkSection() {
         </div>
         {!dhcp && (
           <>
-            <div className="cp__form-row">
-              <label className="cp__label">Dirección IP</label>
-              <input className="cp__input" defaultValue="192.168.1.100" />
-            </div>
-            <div className="cp__form-row">
-              <label className="cp__label">Máscara de red</label>
-              <input className="cp__input" defaultValue="255.255.255.0" />
-            </div>
-            <div className="cp__form-row">
-              <label className="cp__label">Gateway</label>
-              <input className="cp__input" defaultValue="192.168.1.1" />
-            </div>
+            <div className="cp__form-row"><label className="cp__label">Dirección IP</label><input className="cp__input" defaultValue="192.168.1.100" /></div>
+            <div className="cp__form-row"><label className="cp__label">Máscara de red</label><input className="cp__input" defaultValue="255.255.255.0" /></div>
+            <div className="cp__form-row"><label className="cp__label">Gateway</label><input className="cp__input" defaultValue="192.168.1.1" /></div>
           </>
         )}
-        <div className="cp__form-row">
-          <label className="cp__label">DNS Primario</label>
-          <input className="cp__input" defaultValue="8.8.8.8" />
-        </div>
-        <div className="cp__form-row">
-          <label className="cp__label">DNS Secundario</label>
-          <input className="cp__input" defaultValue="8.8.4.4" />
-        </div>
-        <button className="cp__save-btn">Guardar Configuración</button>
+        <div className="cp__form-row"><label className="cp__label">DNS Primario</label><input className="cp__input" defaultValue="8.8.8.8" /></div>
+        <div className="cp__form-row"><label className="cp__label">DNS Secundario</label><input className="cp__input" defaultValue="8.8.4.4" /></div>
+        <button className="cp__save-btn" onClick={save}>Guardar Configuración</button>
       </div>
     </div>
   );
