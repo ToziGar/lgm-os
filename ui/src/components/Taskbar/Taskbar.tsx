@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import {
-  LayoutGrid, Bell, Sun, Moon, LogOut, User, Wifi, HardDrive,
+  LayoutGrid, Bell, Sun, Moon, LogOut, User, Wifi, HardDrive, Search, Settings,
 } from 'lucide-react';
 import { useSystemStore } from '../../store/systemStore';
 import { useWindowStore } from '../../store/windowStore';
@@ -51,7 +51,7 @@ function CpuIndicator() {
   );
 }
 
-export function Taskbar() {
+export function Taskbar({ onOpenSearch, onOpenSettings }: { onOpenSearch?: () => void; onOpenSettings?: () => void }) {
   const { user, theme, notifications, toggleTheme, toggleLaunchPad, toggleNotifications, logout } =
     useSystemStore();
   const { windows, focusWindow, minimizeWindow, openWindow } = useWindowStore();
@@ -123,6 +123,11 @@ export function Taskbar() {
 
       {/* Right: System tray */}
       <div className="taskbar__right">
+        {onOpenSearch && (
+          <button className="taskbar__search-btn" onClick={onOpenSearch} title="Búsqueda global (Ctrl+Space)">
+            <Search size={14} />
+          </button>
+        )}
         <CpuIndicator />
 
         <div className="taskbar__tray-sep" />
@@ -177,6 +182,12 @@ export function Taskbar() {
             </>
           )}
         </div>
+
+        {onOpenSettings && (
+          <button className="taskbar__tray-btn" onClick={onOpenSettings} title="Ajustes rápidos">
+            <Settings size={14} />
+          </button>
+        )}
 
         <button
           className="taskbar__tray-btn"

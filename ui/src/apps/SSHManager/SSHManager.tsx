@@ -36,12 +36,13 @@ interface SSHKeyLocal {
 function loadSSHConnections(): SSHConnection[] {
   try {
     const raw = localStorage.getItem('lgmos-ssh-connections');
-    return raw ? JSON.parse(raw) : [
-      { id: '1', name: 'LGM NAS (local)', host: '192.168.1.100', port: 22, user: 'admin', authType: 'key' as const, keyName: 'id_ed25519', group: 'Local', lastConnected: '16/06/2025 14:32', status: 'idle' as const },
-      { id: '2', name: 'Servidor Backup', host: '192.168.1.101', port: 22, user: 'admin', authType: 'key' as const, keyName: 'id_ed25519', group: 'Local', status: 'idle' as const },
-      { id: '3', name: 'VPS Producción', host: '45.76.10.22', port: 22, user: 'ubuntu', authType: 'key' as const, keyName: 'vps_key', group: 'Remoto', status: 'idle' as const },
-    ];
-  }
+    if (raw) return JSON.parse(raw);
+  } catch { /* corrupted data, use defaults */ }
+  return [
+    { id: '1', name: 'LGM NAS (local)', host: '192.168.1.100', port: 22, user: 'admin', authType: 'key' as const, keyName: 'id_ed25519', group: 'Local', lastConnected: '16/06/2025 14:32', status: 'idle' as const },
+    { id: '2', name: 'Servidor Backup', host: '192.168.1.101', port: 22, user: 'admin', authType: 'key' as const, keyName: 'id_ed25519', group: 'Local', status: 'idle' as const },
+    { id: '3', name: 'VPS Producción', host: '45.76.10.22', port: 22, user: 'ubuntu', authType: 'key' as const, keyName: 'vps_key', group: 'Remoto', status: 'idle' as const },
+  ];
 }
 function saveSSHConnections(conns: SSHConnection[]) {
   localStorage.setItem('lgmos-ssh-connections', JSON.stringify(conns));

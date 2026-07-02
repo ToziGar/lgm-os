@@ -27,11 +27,16 @@ const ALL_APPS = [
   { id: 'zfs-panel',      name: 'ZFS Panel',              icon: '💾', description: 'Pools ZFS y snapshots',  color: '#0f172a',  group: 'Almacenamiento', defaultWidth: 1100, defaultHeight: 700,  minWidth: 840,  minHeight: 540 },
   /* ─ Users ─ */
   { id: 'user-manager',   name: 'Usuarios y Grupos',      icon: '👥', description: 'Usuarios, grupos, permisos', color: '#4f46e5', group: 'Usuarios',     defaultWidth: 1020, defaultHeight: 640,  minWidth: 760,  minHeight: 480 },
+  /* ─ Nuevas Apps v1.1 ─ */
+  { id: 'photo-station',  name: 'Photo Station',          icon: '🖼️', description: 'Galería de fotos con álbumes', color: '#ec4899', group: 'Multimedia',   defaultWidth: 960,  defaultHeight: 680,  minWidth: 720,  minHeight: 500 },
+  { id: 'note-station',   name: 'Note Station',           icon: '📝', description: 'Bloc de notas con libretas',  color: '#8b5cf6', group: 'Productividad', defaultWidth: 920,  defaultHeight: 640,  minWidth: 700,  minHeight: 480 },
+  { id: 'music-player',   name: 'Música',                  icon: '🎵', description: 'Reproductor de música',     color: '#10b981', group: 'Multimedia',   defaultWidth: 860,  defaultHeight: 600,  minWidth: 640,  minHeight: 440 },
 ];
 
 const SVG_APPS = new Set(['file-station','control-panel','package-center','terminal','text-editor',
   'system-info','calculator','network-services','ssh-manager','shared-folders','vpn',
-  'vpn-manager','task-manager','log-center','user-manager','storage-manager','zfs-panel']);
+  'vpn-manager','task-manager','log-center','user-manager','storage-manager','zfs-panel',
+  'photo-station','note-station','music-player']);
 
 export function LaunchPad() {
   const { showLaunchPad, closeLaunchPad } = useSystemStore();
@@ -55,6 +60,7 @@ export function LaunchPad() {
         { label: 'Red',           apps: filtered.filter(a => a.group === 'Red') },
         { label: 'Almacenamiento',apps: filtered.filter(a => a.group === 'Almacenamiento') },
         { label: 'Usuarios',      apps: filtered.filter(a => a.group === 'Usuarios') },
+        { label: 'Multimedia',    apps: filtered.filter(a => a.group === 'Multimedia') },
       ].filter(g => g.apps.length > 0);
 
   const launch = (app: typeof ALL_APPS[0]) => {

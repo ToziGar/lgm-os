@@ -42,7 +42,8 @@ const WALLPAPERS = [
 export function Desktop() {
   const { toggleLaunchPad, closeLaunchPad, showLaunchPad, addNotification } = useSystemStore();
   const { openWindow } = useWindowStore();
-  const [wpIdx, setWpIdx] = useState(0);
+  const savedWp = parseInt(localStorage.getItem('lgmos-wallpaper') ?? '0', 10);
+  const [wpIdx, setWpIdx] = useState(isNaN(savedWp) ? 0 : savedWp);
   const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number } | null>(null);
   const [showWpPicker, setShowWpPicker] = useState(false);
 
@@ -150,7 +151,7 @@ export function Desktop() {
             <div className="desktop__wp-picker">
               {WALLPAPERS.map((w, i) => (
                 <button key={i} className={`desktop__wp-item ${wpIdx === i ? 'desktop__wp-item--active' : ''}`}
-                  onClick={() => { setWpIdx(i); addNotification('Fondo cambiado', w.name, 'success'); closeCtx(); }}>
+                  onClick={() => { setWpIdx(i); localStorage.setItem('lgmos-wallpaper', String(i)); addNotification('Fondo cambiado', w.name, 'success'); closeCtx(); }}>
                   <span className="desktop__wp-preview" style={{ background: w.preview } as React.CSSProperties}/>
                   <span>{w.name}</span>
                   {wpIdx === i && <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#2d7bff" strokeWidth="2.5" style={{ marginLeft: 'auto' }}><polyline points="20 6 9 17 4 12"/></svg>}

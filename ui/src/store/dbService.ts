@@ -482,6 +482,10 @@ export const db = {
   },
   clearLogs: () => write('logs', []),
 
+  /* ─── Installed Apps ─── */
+  getInstalledApps: () => read<import('../types/app').InstalledApp[]>('installedApps', []),
+  setInstalledApps: (apps: import('../types/app').InstalledApp[]) => write('installedApps', apps),
+
   /* ─── Utility ─── */
   resetAll: () => {
     const keys: string[] = [];

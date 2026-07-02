@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { useWindowStore } from './store/windowStore';
 import { useSystemStore, needsSetup } from './store/systemStore';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -8,51 +9,41 @@ import { Taskbar } from './components/Taskbar/Taskbar';
 import { LaunchPad } from './components/LaunchPad/LaunchPad';
 import { AppWindow } from './components/Window/Window';
 import { Notifications } from './components/Notifications/Notifications';
-import { FileStation } from './apps/FileStation/FileStation';
-import { ControlPanel } from './apps/ControlPanel/ControlPanel';
-import { PackageCenter } from './apps/PackageCenter/PackageCenter';
-import { Terminal } from './apps/Terminal/Terminal';
-import { TextEditor } from './apps/TextEditor/TextEditor';
-import { SystemInfo } from './apps/SystemInfo/SystemInfo';
-import { Calculator } from './apps/Calculator/Calculator';
-import { NetworkServices } from './apps/NetworkServices/NetworkServices';
-import { SSHManager } from './apps/SSHManager/SSHManager';
-import { TaskManager } from './apps/TaskManager/TaskManager';
-import { LogCenter } from './apps/LogCenter/LogCenter';
-import { VPNManager } from './apps/VPNManager/VPNManager';
-import { UserManager } from './apps/UserManager/UserManager';
-import { StorageManager } from './apps/StorageManager/StorageManager';
-import { ZFSPanel } from './apps/ZFSPanel/ZFSPanel';
+import { LazyAppResolver } from './components/Window/LazyAppResolver';
+import { GlobalSearch } from './components/GlobalSearch/GlobalSearch';
+import { QuickSettings } from './components/QuickSettings/QuickSettings';
 
+/**
+ * Renderiza el componente de una aplicación dado su appId.
+ * Usa LazyAppResolver que carga Core Apps de forma síncrona
+ * y Store Apps con React.lazy() + Suspense.
+ */
 function renderApp(appId: string) {
-  switch (appId) {
-    case 'file-station':      return <FileStation />;
-    case 'control-panel':     return <ControlPanel />;
-    case 'package-center':    return <PackageCenter />;
-    case 'terminal':          return <Terminal />;
-    case 'text-editor':       return <TextEditor />;
-    case 'system-info':       return <SystemInfo />;
-    case 'calculator':        return <Calculator />;
-    case 'network-services':  return <NetworkServices />;
-    case 'ssh-manager':       return <SSHManager />;
-    case 'task-manager':      return <TaskManager />;
-    case 'log-center':        return <LogCenter />;
-    case 'vpn-manager':       return <VPNManager />;
-    case 'user-manager':      return <UserManager />;
-    case 'storage-manager':   return <StorageManager />;
-    case 'zfs-panel':         return <ZFSPanel />;
-    default: return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-secondary)' }}>
-        Aplicación no encontrada
-      </div>
-    );
-  }
+  return <LazyAppResolver appId={appId} />;
 }
 
 export default function App() {
   const { isLoggedIn, theme } = useSystemStore();
   const { windows } = useWindowStore();
   const requiresSetup = needsSetup();
+  const [showGlobalSearch, setShowGlobalSearch] = useState(false);
+  const [showQuickSettings, setShowQuickSettings] = useState(false);
+
+  // Ctrl+Space / Ctrl+K for global search
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey && e.key === ' ') || (e.ctrlKey && e.key === 'k')) {
+        e.preventDefault();
+        if (isLoggedIn) setShowGlobalSearch(v => !v);
+      }
+      if (e.key === 'Escape') {
+        setShowGlobalSearch(false);
+        setShowQuickSettings(false);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [isLoggedIn]);
 
   return (
     <ErrorBoundary>
@@ -81,9 +72,27 @@ export default function App() {
             ))}
           </div>
 
-          <Taskbar />
+          <Taskbar
+            onOpenSearch={() => setShowGlobalSearch(true)}
+            onOpenSettings={() => setShowQuickSettings(true)}
+          />
           <LaunchPad />
           <Notifications />
+
+          {/* Global Search overlay */}
+          {showGlobalSearch && (
+            <GlobalSearch onClose={() => setShowGlobalSearch(false)} />
+          )}
+
+          {/* Quick Settings panel */}
+          {showQuickSettings && (
+            <>
+              <div className="qs__backdrop" onClick={() => setShowQuickSettings(false)} />
+              <div style={{ position: 'fixed', bottom: 'calc(var(--taskbar-height) + 8px)', right: 8, zIndex: 9999 }}>
+                <QuickSettings onClose={() => setShowQuickSettings(false)} />
+              </div>
+            </>
+          )}
         </>
       )}
     </div>

@@ -166,6 +166,40 @@ export const APPS: AppDefinition[] = [
     minHeight: 500,
     color: '#0284c7',
   },
+  /* ─── Nuevas apps v1.1 ─── */
+  {
+    id: 'photo-station',
+    name: 'Photo Station',
+    icon: '🖼️',
+    description: 'Galería de fotos con álbumes y visor EXIF',
+    defaultWidth: 960,
+    defaultHeight: 680,
+    minWidth: 720,
+    minHeight: 500,
+    color: '#ec4899',
+  },
+  {
+    id: 'note-station',
+    name: 'Note Station',
+    icon: '📝',
+    description: 'Bloc de notas con Markdown, libretas y etiquetas',
+    defaultWidth: 920,
+    defaultHeight: 640,
+    minWidth: 700,
+    minHeight: 480,
+    color: '#8b5cf6',
+  },
+  {
+    id: 'music-player',
+    name: 'Música',
+    icon: '🎵',
+    description: 'Reproductor de música con listas de reproducción',
+    defaultWidth: 860,
+    defaultHeight: 600,
+    minWidth: 640,
+    minHeight: 440,
+    color: '#10b981',
+  },
 ];
 
 export const getApp = (id: string): AppDefinition | undefined =>

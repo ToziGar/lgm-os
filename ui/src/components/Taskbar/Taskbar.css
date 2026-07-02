@@ -158,6 +158,28 @@
   height: 100%;
 }
 
+/* Search button */
+.taskbar__search-btn {
+  background: none;
+  border: 1px solid rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.5);
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-family: inherit;
+  margin-right: 4px;
+  white-space: nowrap;
+}
+.taskbar__search-btn:hover {
+  background: rgba(255,255,255,0.1);
+  color: white;
+  border-color: rgba(255,255,255,0.2);
+}
+
 .taskbar__tray-sep {
   width: 1px;
   height: 18px;
